@@ -1,6 +1,6 @@
 # Dask_client_PTTUDDNT
 
 To run:
-  \nnpm install (to install packets)
-  \n(npx) react-native start
-  \n(npx) react-native run-android (to open android simulator)
+- npm install (to install packets)
+- (npx) react-native start
+- (npx) react-native run-android (to open android simulator)
