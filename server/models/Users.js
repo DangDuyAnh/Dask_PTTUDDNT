@@ -19,16 +19,6 @@ const usersSchema = new mongoose.Schema({
         max: 255,
         min: 6,
     },
-    firstName: {
-        type: String,
-        required: false,
-        max: 30,
-    },
-    lastName: {
-        type: String,
-        required: false,
-        max: 30,
-    },
     gender: {
         type: String,
         enum: [GENDER_MALE, GENDER_FEMALE, GENDER_SECRET],
@@ -75,6 +65,7 @@ const usersSchema = new mongoose.Schema({
         type: Array,
         required: false
     },
+    
 });
 
 usersSchema.index({phonenumber: 'text'});

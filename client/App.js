@@ -10,7 +10,6 @@ import MainTab from './screens/authentication/MainTab';
 function App() {
   const initialLoginState = {
     isLoading: true,
-    user: null,
     userToken: null,
   };
 
@@ -44,17 +43,22 @@ function App() {
       signIn: async (data) => {
         try {
           await EncryptedStorage.setItem('userToken', 
-          JSON.stringify({
-            token : "dummy-auth-token"
-        }));
+            JSON.stringify({
+              token : data.token,
+          }));
+          await EncryptedStorage.setItem('user', 
+            JSON.stringify({
+              user : data.user,
+          }));
         } catch(e) {
           console.log(e);
         }
-        dispatch({ type: 'LOGIN', token: 'dummy-auth-token' });
+        dispatch({ type: 'LOGIN', token: data.token });
       },
       signOut: async() => {
         try {
           await EncryptedStorage.removeItem('userToken');
+          await EncryptedStorage.removeItem('user');
         } catch(e) {
           console.log(e);
         }

@@ -7,12 +7,22 @@ const {JWT_SECRET} = require("../constants/constants");
 const uploadFile = require('../functions/uploadFile');
 const usersController = {};
 
+usersController.findNumber = async (req, res, next) => {
+    const {phonenumber} = req.body;
+    let user = await UserModel.findOne({
+        phonenumber: phonenumber
+    })
+    res.json({data:user});   
+    }
+
 usersController.register = async (req, res, next) => {
     try {
         const {
             phonenumber,
             password,
             username,
+            birthday,
+            gender
         } = req.body;
 
         let user = await UserModel.findOne({
@@ -27,14 +37,16 @@ usersController.register = async (req, res, next) => {
         //Hash password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
-        let avatar  = await DocumentModel.findById("60c39f54f0b2c4268eb53367");
-        let coverImage  = await DocumentModel.findById("60c39eb8f0b2c4268eb53366");
+        // let avatar  = await DocumentModel.findById("60c39f54f0b2c4268eb53367");
+        // let coverImage  = await DocumentModel.findById("60c39eb8f0b2c4268eb53366");
         user = new UserModel({
             phonenumber: phonenumber,
             password: hashedPassword,
             username: username,
-            avatar: "60c39f54f0b2c4268eb53367",
-            cover_image: "60c39eb8f0b2c4268eb53366"
+            birthday: birthday,
+            gender: gender
+            // avatar: "60c39f54f0b2c4268eb53367",
+            // cover_image: "60c39eb8f0b2c4268eb53366"
         });
 
         try {
@@ -43,7 +55,7 @@ usersController.register = async (req, res, next) => {
             // login for User
             // create and assign a token
             const token = jwt.sign(
-                {username: savedUser.username, firstName: savedUser.firstName, lastName: savedUser.lastName, id: savedUser._id},
+                {username: savedUser.username, phonenumber: savedUser.phonenumber, id: savedUser._id},
                 JWT_SECRET
             );
             res.status(httpStatus.CREATED).json({
@@ -51,8 +63,8 @@ usersController.register = async (req, res, next) => {
                     id: savedUser._id,
                     phonenumber: savedUser.phonenumber,
                     username: savedUser.username,
-                    avatar: avatar,
-                    cover_image: coverImage,
+                    // avatar: avatar,
+                    // cover_image: coverImage,
                 },
                 token: token
             })
