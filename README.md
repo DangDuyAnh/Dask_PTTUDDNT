@@ -1,6 +1,9 @@
 # Dask_PTTUDDNT
 
-To run client:
+Database:
+- 
+
+Để chạy client:
 - cd to client
 - npm install (to install packets)
 - (npx) react-native start
