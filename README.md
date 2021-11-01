@@ -12,6 +12,10 @@ Truy cập Database:
 - Sau khi click đúp gõ: ngrok http 5000 (tại t đang để server chạy trên cổng 5000)
 - Để test API trên postman thì lấy địa chỉ  http://[abcxyz].ngrok.io 
 - Để test API trên android thì lấy địa chỉ  https://[abcxyz].ngrok.io 
+- Chạy server bằng lệnh:
+- cd server
+- npm install ( để cài packet)
+- npm start
 
 Để chạy client:
 - T chạy trên android 4 XL oke không hiểu sao chạy trên android 4 nó bị lỗi =))
