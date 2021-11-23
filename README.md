@@ -14,8 +14,7 @@ Truy cập Database:
 - ->npm start
 
 Để chạy client:
-- T chạy trên android 4 XL oke không hiểu sao chạy trên android 4 nó bị lỗi =))
-- vào file Dask_PTUDDNT\client\config\Constants.js đổi lại API_URL thành địa chỉ HOST:port (VD http://192.168.1.21:5000) tại server t đang để chạy trên cổng 5000
+- vào file Dask_PTUDDNT\client\.env đổi lại APIURL thành địa chỉ HOST:port (VD http://192.168.1.21:5000) tại server t đang để chạy trên cổng 5000
 - cd to client
 - npm install (to install packets)
 - (npx) react-native run-android (to open android simulator)
