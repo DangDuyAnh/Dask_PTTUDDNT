@@ -4,8 +4,9 @@ const httpStatus = require("../utils/httpStatus");
 
 const auth = async (req, res, next) => {
   try {
-    let authorization = req.headers.authorization.split(' ')[1], decoded;
+    let decoded;
     try {
+        let authorization = req.headers.authorization.split(' ')[1];
         decoded = jwt.verify(authorization, process.env.JWT_SECRET);
     } catch (e) {
         return res.status(httpStatus.UNAUTHORIZED).json({
@@ -29,7 +30,7 @@ const auth = async (req, res, next) => {
     req.userId = userId;
     next();
   } catch (err) {
-      return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({message: error.message});
+      return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({message: err.message});
   }
 };
 

@@ -14,6 +14,14 @@ target 'Dask' do
     :hermes_enabled => false
   )
 
+  pod 'react-native-cameraroll', :path => '../node_modules/@react-native-community/cameraroll'
+
+  pod 'RNCPicker', :path => '../node_modules/@react-native-picker/picker'
+
+  pod 'react-native-camera', :path => '../node_modules/react-native-camera'
+
+  pod 'react-native-video', :path => '../node_modules/react-native-video'
+
   target 'DaskTests' do
     inherit! :complete
     # Pods for testing

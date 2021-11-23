@@ -2,11 +2,12 @@ import * as React from 'react';
 import { StyleSheet, Text, TextInput, View, TouchableHighlight, Alert} from 'react-native';
 
 import * as Const from '../../config/Constants';
-import { AuthContext } from '../../utility/context';
+import { GlobalContext } from '../../utility/context';
 
 const Login = (props) => {
 
-  const { signIn } = React.useContext(AuthContext);
+  // const { signIn } = React.useContext(AuthContext);
+  const { globalFunction } = React.useContext(GlobalContext);
   const [dataUser, setDataUser] = React.useState({
     phone: '',
     password: ''
@@ -61,7 +62,7 @@ const Login = (props) => {
         ]);
         return;
       } else {
-        signIn({token:json.token, user:json.data});
+        globalFunction.signIn({token:json.token, user:json.data});
       }
     } catch (error) {
       console.error(error);

@@ -3,10 +3,10 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const mainRouter = require("./routes/index");
-const {PORT} = require("./constants/constants");
+const {PORT, HOST} = require("./constants/constants");
 const {MONGO_URI} = require("./constants/constants");
 const bodyParser = require('body-parser');
-const io = require('socket.io')(3000)
+const io = require('socket.io')(3001)
 // const MessageModel = require("../models/Messages");
 
 // connect to mongodb
@@ -30,13 +30,14 @@ app.use(bodyParser.json({limit: "50mb"}));
 app.use(bodyParser.urlencoded({limit: "50mb", extended: true, parameterLimit:50000}));
 // route middleware
 app.use("/", mainRouter);
+app.use('/uploads', express.static('uploads'));
 
 app.get('/settings', function (req, res) {
     res.send('Settings Page');
 });
 
 
-app.listen(PORT, () => {
+app.listen(PORT, HOST, () => {
     console.log("server start - " + PORT);
 })
 

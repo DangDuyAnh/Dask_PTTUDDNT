@@ -4,7 +4,7 @@ import DatePicker from 'react-native-date-picker';
 import { MaterialIcons } from '@expo/vector-icons';
 import { AntDesign } from '@expo/vector-icons'; 
 
-import { AuthContext } from '../../utility/context';
+import { GlobalContext } from '../../utility/context';
 import * as Const from '../../config/Constants';
 
 const styles = StyleSheet.create({
@@ -373,7 +373,7 @@ export const Register1 = ({ navigation }) => {
 
   export const Register7 = ({ route, navigation }) => {
 
-    const { signIn } = React.useContext(AuthContext);
+    const { globalFunction } = React.useContext(GlobalContext);
 
     const handleRegister = async () => {
       try {
@@ -398,7 +398,7 @@ export const Register1 = ({ navigation }) => {
           navigation.navigate('Đăng nhập');
           return;
         }
-        signIn({token:json.token, user:json.data});
+        globalFunction.signIn({token:json.token, user:json.data});
       } catch (error) {
         console.error(error);
       }

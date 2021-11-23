@@ -2,10 +2,11 @@ import * as React from 'react';
 import EncryptedStorage from 'react-native-encrypted-storage';
 import { NavigationContainer } from '@react-navigation/native';
 
-import { AuthContext } from './utility/context';
+import { GlobalContext } from './utility/context';
 import WaitScreen from './screens/unauthenticattion/WaitScreen';
 import LoginStack from './screens/unauthenticattion/LoginStack';
-import MainTab from './screens/authentication/MainTab';
+import MainStack from './screens/authentication/MainStack';
+import { navigationRef } from './RootNavigation';
 
 function App() {
   const initialLoginState = {
@@ -13,7 +14,7 @@ function App() {
     userToken: null,
   };
 
-  const loginReducer = (prevState, action) => {
+  const globalReducer = (prevState, action) => {
     switch( action.type ) {
       case 'RETRIEVE_TOKEN': 
         return {
@@ -33,19 +34,39 @@ function App() {
           userToken: null,
           isLoading: false,
         };
+      case 'UPDATE_POST_DESCRIPTION':
+        return {
+          ...prevState,
+          postDescription: action.post
+        }
+      case 'UPDATE_POST_IMAGES':
+        return {
+          ...prevState,
+          postImages: action.images
+        }
+      case 'UPDATE_POST_VIDEO':
+        return {
+          ...prevState,
+          postVideo: action.video
+        }
     }
   };
+  const [globalState, dispatch] = React.useReducer(globalReducer, initialLoginState);
 
-  const [loginState, dispatch] = React.useReducer(loginReducer, initialLoginState);
-
-  const authContext = React.useMemo(
+  const globalFunction = React.useMemo(
     () => ({
+      updatePostDescription: (data) => {
+        dispatch({ type: 'UPDATE_POST_DESCRIPTION', post: data });
+      },
+      updatePostImages: (data) => {
+        dispatch({ type: 'UPDATE_POST_IMAGES', images: data });
+      },
+      updatePostVideo: (data) => {
+        dispatch( {type: 'UPDATE_POST_VIDEO', video: data});
+      },
       signIn: async (data) => {
         try {
-          await EncryptedStorage.setItem('userToken', 
-            JSON.stringify({
-              token : data.token,
-          }));
+          await EncryptedStorage.setItem('userToken', data.token);
           await EncryptedStorage.setItem('user', 
             JSON.stringify({
               user : data.user,
@@ -57,8 +78,8 @@ function App() {
       },
       signOut: async() => {
         try {
-          await EncryptedStorage.removeItem('userToken');
           await EncryptedStorage.removeItem('user');
+          await EncryptedStorage.removeItem('userToken');
         } catch(e) {
           console.log(e);
         }
@@ -83,18 +104,20 @@ function App() {
   }, []);
 
 
-  if( loginState.isLoading ) {
+  if( globalState.isLoading ) {
     return(
       <WaitScreen />
     );
   }
 
   return (
-    <AuthContext.Provider value={authContext}>
-      <NavigationContainer>
-      { loginState.userToken !== null ? <MainTab /> : <LoginStack /> }
+    <GlobalContext.Provider value={{globalState: globalState, globalFunction}}>
+      <NavigationContainer ref={navigationRef}>
+      { globalState.userToken !== null ? 
+      <MainStack />
+      : <LoginStack /> }
       </NavigationContainer>
-    </AuthContext.Provider>
+    </GlobalContext.Provider>
   )
 }
 
