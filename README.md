@@ -18,3 +18,6 @@ Truy cập Database:
 - cd to client
 - npm install (to install packets)
 - (npx) react-native run-android (to open android simulator)
+
+WBS:
+- https://husteduvn-my.sharepoint.com/:x:/g/personal/anh_dd183471_sis_hust_edu_vn/EYjuII-4v-VAvX79gSiPRhYBCexhAAMlNWyUTUrz6FYTXA?rtime=EFkeZr6x2Ug
