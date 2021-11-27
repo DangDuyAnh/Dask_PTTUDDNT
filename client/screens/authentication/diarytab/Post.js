@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import { MaterialCommunityIcons, Ionicons, Feather } from '@expo/vector-icons';
-import { StyleSheet, ScrollView, View, TextInput, KeyboardAvoidingView, TouchableOpacity, Text, Button, Image} from 'react-native';
+import { StyleSheet, ScrollView, View, TextInput, KeyboardAvoidingView, TouchableOpacity, StatusBar, Button, Image} from 'react-native';
 import Video from 'react-native-video';
 
 import { GlobalContext } from '../../../utility/context';
@@ -69,7 +69,6 @@ export function PostButton(props) {
         };
             
         if (postVideo) {
-            console.log('postVideo')
             formData.append("videos", {
             uri: postVideo,
             type: 'video/mp4',
@@ -89,7 +88,6 @@ export function PostButton(props) {
               body: formData,
             });
             const json = await response.json();
-            console.log(json);
             RootNavigation.navigate('Main tab');
           } catch (error) {
             console.error(error);
@@ -138,7 +136,7 @@ export function Post(props) {
 
     return(
         <KeyboardAvoidingView style = {styles.container}>
-            {/* <Button title='test' onPress={() => console.log(globalState)} /> */}
+            <StatusBar backgroundColor={Const.COLOR_THEME} hidden={false}/>
             <View style = {styles.inner}>
             <ScrollView style={{marginBottom: 70}}>
             <TextInput style = {styles.textArea} placeholder="Bạn đang nghĩ gì?" multiline={true}

@@ -15,19 +15,6 @@ export default function ImagePicker(props){
     const [selectedPhotos, setSelectedPhotos] = useState([])
     const [currentAlbum, setCurrentAlbum] = useState('All')
 
-    // async function hasAndroidPermission() {
-    //     const permission = PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE;
-      
-    //     const hasPermission = await PermissionsAndroid.check(permission);
-    //     if (hasPermission) {
-    //       return true;
-    //     }
-      
-    //     const status = await PermissionsAndroid.request(permission);
-    //     console.log(status);
-    //     return status === 'granted';
-    //   };
-
     const getAlbums = () => {
         CameraRoll.getAlbums({assetType: 'Photos'})
         .then(r => {
@@ -67,7 +54,18 @@ export default function ImagePicker(props){
 
     const tappedPhotos = (item) => {
       if (!(selectedPhotos.includes(item.node.image.uri))) {
-        setSelectedPhotos([...selectedPhotos, item.node.image.uri]);
+        if (props.route.params && props.route.params.limit) {
+          if (selectedPhotos.length >= props.route.params.limit) {
+            let arr = selectedPhotos;
+            arr.splice(0, 1);
+            setSelectedPhotos([...arr, item.node.image.uri]);
+          } else {
+            setSelectedPhotos([...selectedPhotos, item.node.image.uri]);
+          }
+        } else {
+          setSelectedPhotos([...selectedPhotos, item.node.image.uri]);
+        }
+
       } else {
         for (let i = 0; i < selectedPhotos.length; i++) {
           if (selectedPhotos[i] === item.node.image.uri) {
@@ -84,9 +82,22 @@ export default function ImagePicker(props){
       getPhotos(name);
     };
 
+    const handleImageClick = () => {
+      if (props.route.params) {
+          props.navigation.navigate('Camera', {mode: 'edit'})
+          return;
+      }
+      props.navigation.navigate('Camera')
+    }
+
     const handleNext = () => {
+      if (props.route.params) {
+        if (props.route.params.mode === 'edit') {
+          props.navigation.navigate('EditPost',{images: selectedPhotos});
+          return;
+        }
+      }
       props.navigation.navigate('Post',{images: selectedPhotos});
-      globalFunction.updatePostImages(selectedPhotos);
     }
       
     useEffect(() =>{
@@ -142,9 +153,7 @@ export default function ImagePicker(props){
 
               <TouchableOpacity style={{backgroundColor: 'white', width: '32%', height: 150, margin: 2, justifyContent: 'center', alignItems: 'center',
               borderColor: 'black', borderRadius: 5, borderWidth: 1}}
-              onPress = {() => {
-                props.navigation.navigate('Camera');
-              }}>
+              onPress = {handleImageClick}>
                 <Ionicons name="camera-outline" size={40} color="black" />
                 <Text style={{fontSize: 16, color: 'black'}}>Chụp ảnh</Text>
               </TouchableOpacity>

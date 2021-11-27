@@ -56,13 +56,13 @@ const Login = (props) => {
       const json = await response.json();
       console.log(json)
       //if (typeof json.data === 'undefined')
-      if (json.data === undefined) {
+      if (json.user === undefined) {
         Alert.alert('Tài khoản không tồn tại!', 'Số điện thoại hoặc mật khẩu không đúng.', [
           {text: 'Okay'}
         ]);
         return;
       } else {
-        globalFunction.signIn({token:json.token, user:json.data});
+        globalFunction.signIn({token:json.token, user:json.user});
       }
     } catch (error) {
       console.error(error);

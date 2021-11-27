@@ -79,9 +79,23 @@ export default function ImagePicker(props){
       getPhotos(name);
     };
 
+    const handleVideoClick = () => {
+      props.navigation.navigate('VideoCamera')
+      if (props.route.params) {
+          props.navigation.navigate('VideoCamera', {mode: 'edit'})
+          return;
+      }
+      props.navigation.navigate('VideoCamera')
+    }
+
     const handleNext = () => {
+      if (props.route.params) {
+        if (props.route.params.mode === 'edit') {
+          props.navigation.navigate('EditPost',{video: selectedPhotos});
+          return;
+        }
+      }
       props.navigation.navigate('Post', {video: selectedPhotos});
-      globalFunction.updatePostVideo(selectedPhotos);
     }
       
     useEffect(() =>{
@@ -115,7 +129,7 @@ export default function ImagePicker(props){
 
             <TouchableOpacity style={{backgroundColor: 'white', width: '32%', height: 150, margin: 2, justifyContent: 'center', alignItems: 'center',
             borderColor: 'black', borderRadius: 5, borderWidth: 1}}
-            onPress = {() => {props.navigation.navigate('VideoCamera')}}>
+            onPress = {handleVideoClick}>
               <Ionicons name="videocam-outline" size={40} color="black" />
               <Text style={{fontSize: 16, color: 'black'}}>Quay video</Text>
             </TouchableOpacity>

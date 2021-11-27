@@ -8,28 +8,80 @@ import {
   FontAwesome,
   AntDesign
 } from '@expo/vector-icons'
-import Video from 'react-native-video';
 import VideoPlayer from 'react-native-video-controls';
 
 import * as Const from '../../../config/Constants';
 import { GlobalContext } from '../../../utility/context';
 import { PhotoList } from './Post';
 import BottomPopupSelf from '../../../components/BottomPopupSelf';
+import BottomPopupOther from '../../../components/BottomPopupOthers';
 
 export default function DiaryTab(props) {
 
   const [postList, setPostList] = useState([]);
   const { globalState } = React.useContext(GlobalContext);
   const [showPopupSelf, setShowPopupSelf] = useState(false);
+  const [showPopupOther, setShowPopupOther] = useState(false);
+  const [postData, setPostData] = useState(null);
+
+  const deletePost = (item) => {
+    setShowPopupSelf(false);
+    let filterArr = postList.filter(value => value !== item);
+    setPostList([...filterArr]);
+  }
+
+  const editPost = () => {
+    setShowPopupSelf(false);
+  }
 
   const closePopupSelf = () => {
       setShowPopupSelf(false);
   }
 
+  const closePopupOther = () => {
+    setShowPopupOther(false);
+  }
+
+  const heartPress = async(id, idx) => {
+    let posts = [...postList];
+    if (posts[idx].isLike) {
+      posts[idx].isLike = false;
+      posts[idx].countLikes -= 1;
+    } else {
+      posts[idx].isLike = true;
+      posts[idx].countLikes += 1;
+    }
+    setPostList(posts);
+    const response = await fetch(Const.API_URL+'/api/postLike/action/' + id, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${globalState.userToken}`,
+      },
+  })
+  //  const json = await response.json();
+  //  const data = json.data
+  //  let newPosts = []
+
+  //  postList.forEach((item, idx) => {
+  //     if (item._id === data._id) {
+  //       item.isLike = data.isLike;
+  //       item.like = data.like
+  //       newPosts.push(item);
+  //     }
+  //     else {
+  //       newPosts.push(item);
+  //     } 
+  //  })
+  //  setPostList([...newPosts]);
+  }
+
+
   useEffect(() => {
     try {
       const getData = async () => {
-      const response = await fetch(Const.API_URL+'/api/posts/testListPost', {
+      const response = await fetch(Const.API_URL+'/api/posts/list', {
         method: 'GET',
         headers: {
           Accept: 'application/json',
@@ -50,11 +102,12 @@ export default function DiaryTab(props) {
             newVideos.push(Const.API_URL + value);
             });
 
-        newPostList.push({...item, images: newImages, videos: newVideos});
+        newPostList.push({...item, images: newImages, videos: newVideos, countLikes: item.like.length});
       });
       setPostList(newPostList);
       };
-      getData();
+      const unsubscribe = props.navigation.addListener('focus', getData);
+      return unsubscribe;
     } catch (error) {
       console.error(error);
     }
@@ -80,13 +133,12 @@ export default function DiaryTab(props) {
 
     return (
       <ScrollView style={styles.container}>
-
         <View style={styles.toolBar}>
           <TouchableOpacity activeOpacity={1} onPress={() => {
             props.navigation.navigate('Post');
           }}>
             <View style={styles.row}> 
-              <Image source={{uri: Const.API_URL+'/uploads/DefaultMale.jpg'}} style = {styles.image} />
+              <Image source={{uri: Const.API_URL + globalState.user.avatar}} style = {styles.image} />
               <Text style={styles.input}> Hôm nay bạn thế nào?</Text>
             </View>
           </TouchableOpacity>
@@ -125,13 +177,19 @@ export default function DiaryTab(props) {
 
             <View style={styles.feedHeader}>
               <View style = {styles.headerInner}>
-                <Image source={{uri: Const.API_URL+'/uploads/DefaultMale.jpg'}} style = {styles.imageFeed} />
+                <Image source={{uri: Const.API_URL + item.author.avatar}} style = {styles.imageFeed} />
                 <View style = {styles.headerText}>
-                  <Text style={styles.feedAuthor}>{item.author}</Text>
+                  <Text style={styles.feedAuthor}>{item.author.username}</Text>
                   <FormatTime data={item.createdAt}/>
                 </View>
               </View>  
-              <TouchableOpacity onPress={() => setShowPopupSelf(true)}>
+              <TouchableOpacity onPress={() => {
+                setPostData(item);
+                if (globalState.user._id === item.author._id)
+                  setShowPopupSelf(true)
+                else 
+                  setShowPopupOther(true)
+                }}>
                 <Entypo name="dots-three-horizontal" size={20} color="black" />
               </TouchableOpacity>
             </View>
@@ -141,8 +199,6 @@ export default function DiaryTab(props) {
             {(item.images.length !== 0) && <PhotoList imageList={item.images}/> }
             {(item.videos.length !== 0) &&
               <View style={styles.imageContainer}>
-                {/* <Video style = {{width: '100%', height: 400}} source = {{uri: item.videos[0]}}
-                      resizeMode={"cover"} muted={true} repeat={true} rate={1.0} /> */}
                 <VideoPlayer style = {{width: '100%', height: 400}} source = {{uri: item.videos[0]}} disableBack
                 paused = {true}/>
               </View>}
@@ -151,12 +207,14 @@ export default function DiaryTab(props) {
 
             <View style={styles.twoIcons}>
               <View style={styles.oneIcon}>
-                <AntDesign name="heart" size={24} color="#f44336" />
-                <Text style={styles.textIcon}>{item.like.length}</Text>
+                <TouchableOpacity onPress={() => heartPress(item._id, idx)}>
+                  <AntDesign name={item.isLike?"heart":"hearto"} size={24} color={item.isLike?"#f44336":'black'} />
+                </TouchableOpacity>
+                <Text style={styles.textIcon}>{item.countLikes}</Text>
               </View>
               <View style={styles.oneIcon}>
               <FontAwesome name="comment-o" size={24} color="black" />
-                <Text style={styles.textIcon}>{item.like.length}</Text>
+                <Text style={styles.textIcon}>{item.countComments}</Text>
               </View>
             </View>
 
@@ -167,7 +225,16 @@ export default function DiaryTab(props) {
         <BottomPopupSelf
           show={showPopupSelf}
           closePopup={closePopupSelf}
+          data = {postData}
+          deletePost = {deletePost}
+          editPost = {editPost}
         />
+
+        {postData&&<BottomPopupOther
+          show={showPopupOther}
+          closePopup={closePopupOther}
+          data = {postData}
+        />}
       </ScrollView>
     );
   }

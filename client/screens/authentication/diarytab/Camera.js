@@ -14,9 +14,13 @@ export default function Camera (props) {
     const takePicture = async () => {
           const options = { quality: 0.5, base64: true };
           const data = await camera.current.takePictureAsync(options);
-          console.log(data.uri);
           setImage(data);
-          props.navigation.navigate('Preview', {data: data});
+          // props.navigation.navigate('Preview', {data: data});
+          if (props.route.params) {
+              props.navigation.navigate('Preview', {data: data, mode: 'edit'})
+          } else {
+            props.navigation.navigate('Preview', {data: data});
+          }
       };
 
     const navigationBack = () => {

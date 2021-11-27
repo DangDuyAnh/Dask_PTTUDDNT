@@ -14,7 +14,13 @@ export default function preview(props) {
         if (await hasAndroidPermission()) {
             try {
             CameraRoll.save(props.route.params.data.uri, {album: 'Dask'});
-            props.navigation.navigate('Post', {video: props.route.params.data.uri});
+            // props.navigation.navigate('Post', {video: props.route.params.data.uri});
+            if (props.route.params.mode ) {
+                props.navigation.navigate('EditPost', {video: props.route.params.data.uri});
+            }
+            else {
+                props.navigation.navigate('Post', {video: props.route.params.data.uri});
+            }
             }
             catch(e) {
                 console.log(e);

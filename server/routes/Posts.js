@@ -22,6 +22,7 @@ postsRoutes.get(
 postsRoutes.post(
     "/edit/:id",
     auth,
+    uploadFiles,
     asyncWrapper(postsController.edit)
 );
 

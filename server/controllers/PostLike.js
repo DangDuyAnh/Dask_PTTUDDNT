@@ -6,6 +6,7 @@ const postLikeController = {};
 postLikeController.action = async (req, res, next) => {
     try {
         let userId = req.userId;
+        let isLike = false;
         let post = await PostModel.findById(req.params.postId);
         if (post == null) {
             return res.status(httpStatus.NOT_FOUND).json({message: "Can not find post"});
@@ -17,6 +18,7 @@ postLikeController.action = async (req, res, next) => {
         });
         if (arrLikeNotContainCurrentUser.length === arrLike.length) {
             arrLike.push(userId);
+            isLike = true;
         } else {
             arrLike = arrLikeNotContainCurrentUser;
         }
@@ -30,7 +32,7 @@ postLikeController.action = async (req, res, next) => {
         if (!post) {
             return res.status(httpStatus.NOT_FOUND).json({message: "Can not find post"});
         }
-        post.isLike = post.like.includes(req.userId);
+        post.isLike = isLike;
         return res.status(httpStatus.OK).json({
             data: post
         });

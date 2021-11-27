@@ -91,10 +91,16 @@ export default class CameraVideo extends Component {
         const promise = await this.camera.recordAsync();
         if (promise) {
           const data = promise;
-          console.log(data);
           this.setState({isRecording :false});
           if (isBack === 0)
-            this.props.navigation.navigate('PreviewVideo', {data: data});
+            {
+              if (this.props.route.params) {
+                  this.props.navigation.navigate('PreviewVideo', {data: data, mode: 'edit'})
+              } else {
+                this.props.navigation.navigate('PreviewVideo', {data: data});
+              }
+            }
+            // this.props.navigation.navigate('PreviewVideo', {data: data});
         }
       } catch (e) {
         console.error(e);
@@ -107,7 +113,6 @@ export default class CameraVideo extends Component {
       this.setState({cameraButton: {w: 50, h: 50, r: 25}});
       this.setState({cameraState: 0});
       this.setState({cameraTouch: 0});
-      console.log('done');
       // clearInterval(myInterval);
       clearInterval(interval)
     }
@@ -119,11 +124,9 @@ export default class CameraVideo extends Component {
       interval = setInterval(() => {
         // setMyInterval(interval);
         this.setState({clock :i});
-        console.log(i);
         i= i + 1;
         if (i > 39) {
           clearInterval(interval);
-          console.log('done2');
           this.stopRecording();
         }
       }, 1000);
@@ -136,10 +139,9 @@ export default class CameraVideo extends Component {
 
         if (this.state.cameraTouch === 1) {
           if(this.state.clock < 5) {
-            console.log('yes')
             setTimeout(() => {
               this.stopRecording();
-            }, (3 - this.state.clock)*1000);
+            }, (4 - this.state.clock)*1000);
             }
 
           else {

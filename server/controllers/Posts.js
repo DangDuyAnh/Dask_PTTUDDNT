@@ -1,4 +1,7 @@
 const jwt = require("jsonwebtoken");
+const fs = require("fs")
+const path = require("path");
+
 const UserModel = require("../models/Users");
 const PostModel = require("../models/Posts");
 const FriendModel = require("../models/Friends");
@@ -114,6 +117,8 @@ postsController.create = async (req, res, next) => {
         videoFiles.forEach((item) => {
             videos.push('/uploads/videos/' + item.filename);
         })
+        console.log(images)
+        console.log(videos);
         
         const post = new PostModel({
             author: userId,
@@ -133,6 +138,7 @@ postsController.create = async (req, res, next) => {
         }
 }
 
+/*
 postsController.edit = async (req, res, next) => {
     try {
         let userId = req.userId;
@@ -229,6 +235,105 @@ postsController.edit = async (req, res, next) => {
         });
     }
 }
+*/
+
+postsController.edit = async (req, res, next) => {
+    try {
+        let userId = req.userId;
+        let postId = req.params.id;
+        let postFind = await PostModel.findById(postId);
+        if (postFind == null) {
+            return res.status(httpStatus.NOT_FOUND).json({message: "Can not find post"});
+        }
+        if (postFind.author.toString() !== userId) {
+            return res.status(httpStatus.FORBIDDEN).json({message: "Can not edit this post"});
+        }
+
+        let keepImages = []
+        let keepVideos = []
+
+        if (req.body.oldImage) {
+            if (Array.isArray(req.body.oldImage)) {
+                keepImages = req.body.oldImage.map((item) => {
+                    let index = item.search('/uploads');
+                    let image = item.substring(index);
+                    return image;
+                })
+            }
+            else {
+                let index = req.body.oldImage.search('/uploads');
+                let image = req.body.oldImage.substring(index);
+                keepImages = [image];
+            }
+        }
+
+        if (req.body.oldVideo) {
+            let index = req.body.oldVideo.search('/uploads');
+            let video = req.body.oldVideo.substring(index);
+            keepVideos = [video];
+        }
+
+        let deleteImages = postFind.images.filter((item) => !(keepImages.includes(item)));
+        let deleteVideos = postFind.videos.filter((item) => !(keepVideos.includes(item)));
+        let deleteFiles = [...deleteImages, ...deleteVideos]
+
+        deleteFiles.forEach((item, idx) => {
+            fs.unlink(path.join(__dirname, "../" + item), function(err) {
+                if (err) {
+                  throw err
+                } else {
+                  console.log("Successfully deleted the file.")
+                }
+              })
+        });
+
+        const described = req.body.described;
+        let imageFiles = [];
+        let videoFiles = [];
+        if (req.files.images) {
+            imageFiles = req.files.images;
+        }
+        if (req.files.videos) {
+            videoFiles = req.files.videos;
+        }
+        let images = [];
+        let videos = [];
+
+        console.log(videoFiles);
+        imageFiles.forEach((item) => {
+            images.push('/uploads/images/' + item.filename);
+        })
+
+        videoFiles.forEach((item) => {
+            videos.push('/uploads/videos/' + item.filename);
+        })
+
+        images = [...keepImages, ...images];
+        videos = [...keepVideos, ...videos];
+
+        let postSaved = await PostModel.findByIdAndUpdate(postId, {
+            described: described,
+            images: images,
+            videos: videos,
+        });
+
+        postSaved = await PostModel.findById(postSaved._id).populate({
+            path: 'author',
+            select: '_id username phonenumber avatar',
+            model: 'Users'
+        });
+
+        return res.status(httpStatus.OK).json({
+            data: postSaved
+        });
+
+        } catch (e) {
+            return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+                message: e.message
+            });
+        }
+    }
+
 postsController.show = async (req, res, next) => {
     try {
         let post = await PostModel.findById(req.params.id).populate('images', ['fileName']).populate('videos', ['fileName']).populate({
@@ -258,6 +363,22 @@ postsController.delete = async (req, res, next) => {
         if (post == null) {
             return res.status(httpStatus.NOT_FOUND).json({message: "Can not find post"});
         }
+
+        let deleteImages = post.images;
+        let deleteVideos = post.videos;
+        let deleteFiles = [...deleteImages, ...deleteVideos];
+
+        deleteFiles.forEach((item, idx) => {
+            fs.unlink(path.join(__dirname, "../" + item), function(err) {
+                if (err) {
+                  throw err
+                } else {
+                  console.log("Successfully deleted the file.")
+                }
+              })
+        });
+
+
         return res.status(httpStatus.OK).json({
             message: 'Delete post done',
         });
@@ -297,7 +418,6 @@ postsController.list = async (req, res, next) => {
                 }
             ])
             let listIdFriends = [];
-            console.log(friends)
             for (let i = 0; i < friends.length; i++) {
                 if (friends[i].sender.toString() === userId.toString()) {
                     listIdFriends.push(friends[i].receiver);
@@ -306,24 +426,19 @@ postsController.list = async (req, res, next) => {
                 }
             }
             listIdFriends.push(userId);
-            console.log(listIdFriends);
-            // get post of friends of 1 user
+
             posts = await PostModel.find({
                 "author": listIdFriends
-            }).populate('images', ['fileName']).populate('videos', ['fileName']).populate({
+            }).populate({
                 path: 'author',
                 select: '_id username phonenumber avatar',
-                model: 'Users',
-                populate: {
-                    path: 'avatar',
-                    select: '_id fileName',
-                    model: 'Documents',
-                },
-            });
+                model: 'Users'
+            }).sort({"createdAt": -1});
         }
         let postWithIsLike = [];
         for (let i = 0; i < posts.length; i ++) {
             let postItem = posts[i];
+            console.log(postItem)
             postItem.isLike = postItem.like.includes(req.userId);
             postWithIsLike.push(postItem);
         }

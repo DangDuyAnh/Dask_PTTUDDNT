@@ -1,13 +1,14 @@
 import * as React from 'react';
 import { Ionicons, MaterialCommunityIcons, MaterialIcons} from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { StyleSheet, View, Text, StatusBar } from 'react-native';
+import { StyleSheet, View, Text, StatusBar, Touchable, TouchableOpacity } from 'react-native';
 
 import ChatTab from './chattab/ChatTab';
 import DiaryTab from './diarytab/DiaryTab';
 import ProfileTab from './profiletab/ProfileTab';
 import Contact from './contacttab/Contact';
 import * as Const from '../../config/Constants';
+import * as RootNavigation from '../../RootNavigation';
 
 const Tab = createBottomTabNavigator();
 
@@ -62,7 +63,11 @@ export default function MainTab() {
           <Text style = {styles.headerText}>Tìm bạn bè, tin nhắn ...</Text>
         </View>
         <View style={styles.headerWrapper}>
-          <MaterialIcons style={{paddingRight: 10}} name="post-add" size={26} color="white"  />
+          <TouchableOpacity style={{paddingRight: 10}} onPress = {() => {
+            console.log('Hi');
+            RootNavigation.navigate('Post')}}>
+            <MaterialIcons name="post-add" size={26} color="white"  />
+          </TouchableOpacity>
           <Ionicons name="ios-notifications-outline" size={26} color="white"  />
         </View>
       </View>

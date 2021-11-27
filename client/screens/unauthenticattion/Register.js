@@ -393,12 +393,12 @@ export const Register1 = ({ navigation }) => {
           })
         });
         const json = await response.json();
-        if ((json.data === undefined) || (json.data === null)) {
+        if ((json.user === undefined) || (json.user === null)) {
           Alert.alert('Đăng ký thất bại!', 'Đăng ký thật bại, hãy thử lại.', [{text: 'Okay'}]);
           navigation.navigate('Đăng nhập');
           return;
         }
-        globalFunction.signIn({token:json.token, user:json.data});
+        globalFunction.signIn({token:json.token, user:json.user});
       } catch (error) {
         console.error(error);
       }

@@ -50,12 +50,10 @@ const usersSchema = new mongoose.Schema({
         required: false,
     },
     avatar: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Documents',
+        type: String,
     },
     cover_image: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Documents',
+        type: String,
     },
     blocked_inbox: {
         type: Array,
