@@ -87,8 +87,56 @@ chatController.getMessages = async (req, res, next) => {
         let messages = await MessagesModel.find({
             chat: req.params.chatId
         }).populate('user');
-        return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+        return res.status(httpStatus.OK).json({
             data: messages
+        });
+    } catch (e) {
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+            message: e.message
+        });
+    }
+}
+chatController.getListConversations = async (req, res, next) => {
+    try {
+        let array = await ChatModel.find();
+        let chats = array.filter(element => {
+            return element.member.includes(req.params.userId)
+        });
+        return res.status(httpStatus.OK).json({
+            data: chats
+        });
+    } catch (e) {
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+            message: e.message
+        });
+    }
+}
+chatController.deleteMessage = async (req, res, next) => {
+    try {
+        let message = await MessagesModel.findByIdAndDelete(req.params.messageId);
+        if (message == null) {
+            return res.status(httpStatus.NOT_FOUND).json({message: "Can not find post"});
+        }
+        return res.status(httpStatus.OK).json({
+            message: 'Delete message done',
+        });
+    } catch (e) {
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+            message: e.message
+        });
+    }
+}
+chatController.deleteConversation = async (req, res, next) => {
+    try {
+        let chat = await ChatModel.findByIdAndDelete(req.params.chatId);
+        if (chat == null) {
+            return res.status(httpStatus.NOT_FOUND).json({message: "Can not find conversation"});
+        }
+        let messages = await MessagesModel.deleteMany({
+            chat: req.params.chatId
+        })
+        return res.status(httpStatus.OK).json({
+            message: 'Delete conversation done',
         });
     } catch (e) {
         return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
