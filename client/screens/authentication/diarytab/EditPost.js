@@ -128,6 +128,10 @@ export function EditPost(props) {
           }
     }
 
+    const deleteVideo = () => {
+        globalFunction.updatePostVideo([]);
+    }
+
     const PhotoList = ({imageList}) => {
         if ((imageList === undefined) || (imageList === null) || (imageList.length === 0)) return null;
         if (imageList.length === 1) 
@@ -202,6 +206,12 @@ export function EditPost(props) {
                 <PhotoList imageList={globalState.postImages}/>
                 {((globalState.postVideo !== null) && (globalState.postVideo.length !== 0)) && 
                 <View style={styles.imageContainer}>
+                    <TouchableOpacity style={{height: 24, width: 24, borderRadius: 15, textAlign: 'center',
+                    position: 'absolute', top: 10, right: 10, backgroundColor: '#000000AA', color: 'white', zIndex: 20}}
+                    onPress = {() => deleteVideo()}>
+                    <AntDesign name="closecircleo" size={24} color="black" style={{height: 24, width: 24, borderRadius: 15, textAlign: 'center',
+                    zIndex: 20, color: 'white'}} />
+                    </TouchableOpacity>
                     <Video style = {{width: '100%', height: 400}} source = {{uri: globalState.postVideo[0]}}
                             resizeMode={"cover"} muted={true} repeat={true} rate={1.0} />
                 </View>}

@@ -111,9 +111,10 @@ export function PostButton(props) {
 export function Post(props) {
 
     const { globalFunction, globalState } = React.useContext(GlobalContext);
+    const [textVal, setTextVal] = useState(null);
 
     useEffect(() => {
-        globalFunction.updatePostDescription(null);
+        globalFunction.updatePostDescription(textVal);
         globalFunction.updatePostImages(null);
         globalFunction.updatePostVideo(null);
 
@@ -131,6 +132,7 @@ export function Post(props) {
     }, [props.route.params]);
 
     const handleChangeText = (val) => {
+        setTextVal(val);
         globalFunction.updatePostDescription(val);
     }
 

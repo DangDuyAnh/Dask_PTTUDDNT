@@ -16,5 +16,9 @@ chatsRoutes.get(
     asyncWrapper(chatController.getMessages),
 );
 
-
+chatsRoutes.get(
+    "/getListConversation",
+    auth,
+    asyncWrapper(chatController.getListConversation)
+)
 module.exports = chatsRoutes;
