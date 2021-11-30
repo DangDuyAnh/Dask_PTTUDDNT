@@ -27,11 +27,11 @@ chatController.send = async (req, res, next) => {
                 }
             } else {
                 chat = new ChatModel({
-                   type: PRIVATE_CHAT,
-                   member: [
+                    type: PRIVATE_CHAT,
+                    member: [
                        receivedId,
                        userId
-                   ]
+                    ]
                 });
                 await chat.save();
                 chatIdSend = chat._id;
@@ -98,12 +98,24 @@ chatController.getMessages = async (req, res, next) => {
 }
 chatController.getListConversations = async (req, res, next) => {
     try {
+        let userId = req.userId;
         let array = await ChatModel.find();
         let chats = array.filter(element => {
-            return element.member.includes(req.params.userId)
+            return element.member.includes(userId)
+        });
+        let lastMessages = [];
+        async function getLastMessages(chat) {
+            let lastMessage = await MessagesModel.findOne({chat: chat._id}, {}, { sort: {'createdAt': -1 } });
+            console.log(lastMessage)
+            lastMessages.push(lastMessage);
+        }; 
+        await Promise.all(chats.map(getLastMessages));
+        returnArray = [];
+        chats.forEach((chat, idx) => {
+            returnArray.push({chat: chats[idx], lastMessage: lastMessages[idx]})
         });
         return res.status(httpStatus.OK).json({
-            data: chats
+            data: returnArray
         });
     } catch (e) {
         return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
