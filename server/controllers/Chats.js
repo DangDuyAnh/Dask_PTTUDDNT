@@ -4,11 +4,12 @@ const {
 } = require('../constants/constants');
 const ChatModel = require("../models/Chats");
 const MessagesModel = require("../models/Messages");
+const UserModel = require("../models/Users");
 const httpStatus = require("../utils/httpStatus");
 const chatController = {};
 chatController.send = async (req, res, next) => {
     try {
-        let userId = req.userId;
+        let userId = "617f0af2549fef460c878c6e";//req.userId;
         const {
             name,
             chatId,
@@ -26,8 +27,14 @@ chatController.send = async (req, res, next) => {
                     chatIdSend = chat._id;
                 }
             } else {
+                async function getName(id) {
+                    let user = await UserModel.findById(id);
+                    console.log(user.username)
+                    return user.username;
+                } 
                 chat = new ChatModel({
                     type: PRIVATE_CHAT,
+                    name: await Promise.all(getName(receivedId))[0],
                     member: [
                        receivedId,
                        userId
