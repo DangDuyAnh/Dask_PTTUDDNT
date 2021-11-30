@@ -17,7 +17,7 @@ chatsRoutes.get(
 );
 
 chatsRoutes.get(
-    "/getListConversations/:userId",
+    "/getListConversations",
     auth,
     asyncWrapper(chatController.getListConversations),
 );
