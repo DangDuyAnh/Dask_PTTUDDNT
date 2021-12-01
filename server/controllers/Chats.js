@@ -27,14 +27,9 @@ chatController.send = async (req, res, next) => {
                     chatIdSend = chat._id;
                 }
             } else {
-                async function getName(id) {
-                    let user = await UserModel.findById(id);
-                    console.log(user.username)
-                    return user.username;
-                } 
                 chat = new ChatModel({
                     type: PRIVATE_CHAT,
-                    name: await Promise.all(getName(receivedId))[0],
+                    name: name,
                     member: [
                        receivedId,
                        userId
@@ -105,21 +100,29 @@ chatController.getMessages = async (req, res, next) => {
 }
 chatController.getListConversations = async (req, res, next) => {
     try {
-        let userId = req.userId;
+        let userId = "617f0af2549fef460c878c6e";//req.userId;
         let array = await ChatModel.find();
         let chats = array.filter(element => {
             return element.member.includes(userId)
         });
         let lastMessages = [];
+        let receivers = [];
         async function getLastMessages(chat) {
             let lastMessage = await MessagesModel.findOne({chat: chat._id}, {}, { sort: {'createdAt': -1 } });
-            console.log(lastMessage)
+            // console.log(lastMessage);
             lastMessages.push(lastMessage);
+            let id;
+            chat.member.forEach(element => {
+                if (element != userId) id = element;
+            });
+            console.log(id);
+            let receiver = await UserModel.findById(id);
+            receivers.push(receiver);
         }; 
         await Promise.all(chats.map(getLastMessages));
         returnArray = [];
         chats.forEach((chat, idx) => {
-            returnArray.push({chat: chats[idx], lastMessage: lastMessages[idx]})
+            returnArray.push({chat: chats[idx], lastMessage: lastMessages[idx], receiver: receivers[idx]})
         });
         return res.status(httpStatus.OK).json({
             data: returnArray
