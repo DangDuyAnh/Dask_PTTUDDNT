@@ -68,7 +68,7 @@ friendsController.getRequest = async (req, res, next) => {
     try {
         let receiver = req.userId;
         let requested = await FriendModel.find({receiver: receiver, status: "0" }).distinct('sender')
-        let users = await UserModel.find().where('_id').in(requested).populate('avatar').populate('cover_image').exec()
+        let users = await UserModel.find().where('_id').in(requested);//.populate('avatar').populate('cover_image').exec()
    
         res.status(200).json({
             code: 200,
@@ -172,16 +172,22 @@ friendsController.setRemoveFriend = async (req, res, next) => {
 friendsController.listFriends = async (req, res, next) => {
     try {
         if (req.body.user_id == null) {
-            let requested = await FriendModel.find({sender: req.userId, status: "1" }).distinct('receiver')
+            let requested = await FriendModel.find({sender: req.userId, status: "0" }).distinct('receiver')
             let accepted = await FriendModel.find({receiver: req.userId, status: "1" }).distinct('sender')
 
-            let users = await UserModel.find().where('_id').in(requested.concat(accepted)).populate('avatar').populate('cover_image').exec()
+            //let users = await UserModel.find().where('_id').in(requested.concat(accepted))//.populate('avatar').populate('cover_image').exec()
+			
+			let reqFriend = await UserModel.find().where('_id').in(requested)
+			let oldFriend = await UserModel.find().where('_id').in(accepted)
 
+			//console.log(users);
+			
             res.status(200).json({
                 code: 200,
                 message: "Danh sách bạn bè",
                 data: {
-                    friends: users,
+                    friends: oldFriend,
+					waitting: reqFriend
                 }
             });
         }

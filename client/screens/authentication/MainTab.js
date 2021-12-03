@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Ionicons, MaterialCommunityIcons, MaterialIcons} from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { StyleSheet, View, Text, StatusBar, Touchable, TouchableOpacity, TextInput } from 'react-native';
+import { SafeAreaView, StyleSheet, View, Text, StatusBar, Touchable, TouchableOpacity, TextInput } from 'react-native';
 
 import ChatTab from './chattab/ChatTab';
 import DiaryTab from './diarytab/DiaryTab';
@@ -27,14 +27,15 @@ const styles = StyleSheet.create({
   },
   headerText: {
     fontSize: 18,
-    color: 'white'
+    color: 'white',
   },
   input: {
-    height: 100,
+    height: 50,
     width: '75%',
     fontSize: 20,
-    color: 'white'
-
+    color: 'white',
+    //borderWidth: 1,
+    //borderColor: 'red'
   }
 });
 
@@ -45,18 +46,18 @@ function Header(props) {
     <View style={styles.headerContainer}>
       <View style={styles.headerWrapper}>
         <Ionicons style={{...styles.headerChild, paddingRight: 10}} name="search-outline" size={26} color="white" />
-        <TextInput
-          style={styles.input}
-          onChangeText={(e)=>{onChangeText(e); }}
-          value={text}
-          placeholder="Tìm bạn bè, ..."
-          placeholderTextColor='white'
-          clearTextOnFocus='true'
-          selectionColor={'white'}
-          underlineColorAndroid={'transparent'}
-          onEndEditing={(e)=>{change(text);}}
-        />
       </View>
+      <TextInput
+            style={styles.input}
+            onChangeText={(e)=>{onChangeText(e); }}
+            value={text}
+            placeholder="Tìm bạn bè, ..."
+            placeholderTextColor='white'
+            clearTextOnFocus={true}
+            /* selectionColor={'white'} */
+            underlineColorAndroid={'transparent'}
+            onEndEditing={(e)=>{change(text);}}
+          />
       <View style={styles.headerWrapper}>
         <TouchableOpacity style={{paddingRight: 10}} onPress = {() => {
           console.log('Hi');
@@ -71,10 +72,9 @@ function Header(props) {
 
 export default function MainTab() {
 
-  const [searchText, setChangeSearchText] = React.useState("");
-
-
-  const header = <Header onChangeText={setChangeSearchText} searchText={searchText}/>;
+  const [searchText, setSearchText] = React.useState("");
+  const [searchTextContact, setSearchTextContact] = React.useState("");
+  //const [header, setHeader] = React.useState(<Header onChangeText={setChangeSearchText} searchText={searchText}/>);
 
   return (
     <>
@@ -105,23 +105,21 @@ export default function MainTab() {
       >
         <Tab.Screen name="ChatTab" component={ChatTab} 
           options={{ 
-            headerTitle: ()=>{return (header)}, 
+            headerTitle: ()=>{return (<Header onChangeText={setSearchText} searchText={searchText}/>)}, 
             headerStyle: {
               backgroundColor: Const.COLOR_THEME,
             }
           }}
         />
-        <Tab.Screen name="Contact" children={ ()=>{return(<Contact input={searchText}/>)}} 
+        <Tab.Screen name="Contact" 
+          component={Contact}
           options={{ 
-            headerTitle: ()=>{return (header)}, 
-            headerStyle: {
-              backgroundColor: Const.COLOR_THEME,
-            }
+            headerShown:false
           }}
         />
         <Tab.Screen name="DiaryTab" component={DiaryTab} 
           options={{ 
-            headerTitle: ()=>{return (header)}, 
+            headerTitle: ()=>{return (<Header onChangeText={setSearchText} searchText={searchText}/>)}, 
             headerStyle: {
               backgroundColor: Const.COLOR_THEME,
             }
@@ -129,7 +127,7 @@ export default function MainTab() {
           />
         <Tab.Screen name="ProfileTab" component={ProfileTab}
           options={{ 
-            headerTitle: ()=>{return (header)}, 
+            headerTitle: ()=>{return (<Header onChangeText={setSearchText} searchText={searchText}/>)}, 
             headerStyle: {
               backgroundColor: Const.COLOR_THEME,
             }

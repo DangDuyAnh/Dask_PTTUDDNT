@@ -3,20 +3,15 @@ import * as Const from '../config/Constants';
 
 import React from 'react';
 
-import { GlobalContext } from '../utility/context';
-
-
 const API_URL = Const.API_URL + '/api';
 
-export const authPost = (url, body) => {
-  const { globalState } = React.useContext(GlobalContext);
-  const token = `Bearer ${globalState.userToken}`;
-  //console.log(token);
+export const authPost = (url, body, token) => {
+  const _token = `Bearer ${token}`;
   return fetch(API_URL + url, {
     method: "POST",
     headers: {
       "content-type": "application/json",
-      Authorization: token,
+      Authorization: _token,
     },
     body: JSON.stringify(body),
   }).then(
@@ -40,7 +35,7 @@ export const authPost = (url, body) => {
     }
   );
 };
-export const authPostMultiPart = (url, body) => {
+export const authPostMultiPart = (url, body, token) => {
   /*
   return fetch(API_URL + url, {
     method: "POST",
@@ -51,12 +46,11 @@ export const authPostMultiPart = (url, body) => {
   });
   */
 
-  const { globalState } = React.useContext(GlobalContext);
-  const token = `Bearer ${globalState.userToken}`;
+  const _token = `Bearer ${token}`;
   return fetch(API_URL + url, {
     method: "POST",
     headers: {
-      Authorization: token,
+      Authorization: _token,
     },
     body: body,
   }).then(
@@ -80,36 +74,33 @@ export const authPostMultiPart = (url, body) => {
     }
   );
 };
-export const authPut = (url, body) => {
-  const { globalState } = React.useContext(GlobalContext);
-  const token = `Bearer ${globalState.userToken}`;
+export const authPut = (url, body, token) => {
+  const _token = `Bearer ${token}`;
   return fetch(API_URL + url, {
     method: "PUT",
     headers: {
       "content-type": "application/json",
-      Authorization: token,
+      Authorization: _token,
     },
     body: JSON.stringify(body),
   });
 };
 export const authGetImg = (url) => {
-  const { globalState } = React.useContext(GlobalContext);
-  const token = `Bearer ${globalState.userToken}`;
+  const _token = `Bearer ${token}`;
   return fetch(API_URL + url, {
     method: "GET",
     headers: {
-      Authorization: token,
+      Authorization: _token,
     },
   });
 };
-export const authGet = (url) => {
-  const { globalState } = React.useContext(GlobalContext);
-  const token = `Bearer ${globalState.userToken}`;
+export const authGet = (url, token) => {
+  const _token = `Bearer ${token}`;
   return fetch(API_URL + url, {
     method: "GET",
     headers: {
       "content-type": "application/json",
-      Authorization: token,
+      Authorization: _token,
     },
   }).then(
     (res) => {
@@ -132,14 +123,13 @@ export const authGet = (url) => {
     }
   );
 };
-export const authDelete = (url, body) => {
-  const { globalState } = React.useContext(GlobalContext);
-  const token = `Bearer ${globalState.userToken}`;
+export const authDelete = (url, body, token) => {
+  const _token = `Bearer ${token}`;
   return fetch(API_URL + url, {
     method: "DELETE",
     headers: {
       "content-type": "application/json",
-      Authorization: token,
+      Authorization: _token,
     },
     body: JSON.stringify(body),
   }).then(
@@ -169,35 +159,32 @@ export default {
   },
 };
 
-export const axiosPost = (url, data) => {
-  const { globalState } = React.useContext(GlobalContext);
-  const token = `Bearer ${globalState.userToken}`;
+export const axiosPost = (url, data, token) => {
+  const _token = `Bearer ${token}`;
   return axios.post(API_URL + url, data, {
     headers: {
       "content-type": "application/json",
-      Authorization: token,
+      Authorization: _token,
     },
   });
 };
 
-export const axiosGet = (url) => {
-  const { globalState } = React.useContext(GlobalContext);
-  const token = `Bearer ${globalState.userToken}`;
+export const axiosGet = (url, token) => {
+  const _token = `Bearer ${token}`;
   return axios.get(API_URL + url, {
     headers: {
       "content-type": "application/json",
-      Authorization: token,
+      Authorization: _token,
     },
   });
 };
 
-export const axiosPut = (url, data) => {
-  const { globalState } = React.useContext(GlobalContext);
-  const token = `Bearer ${globalState.userToken}`;
+export const axiosPut = (url, data, token) => {
+  const _token = `Bearer ${token}`;
   return axios.put(API_URL + url, data, {
     headers: {
       "content-type": "application/json",
-      Authorization: token,
+      Authorization: _token,
     },
   });
 };
@@ -220,6 +207,7 @@ const isFunction = (func) =>
  * @param {*} config
  */
 export const request = async (
+  token,
   history,
   method,
   url,
@@ -228,8 +216,7 @@ export const request = async (
   data,
   config
 ) => {
-  const { globalState } = React.useContext(GlobalContext);
-  const token = `Bearer ${globalState.userToken}`;
+  const _token = `Bearer ${token}`;
   try {
     const res = await axios({
       baseURL: API_URL,
@@ -239,7 +226,7 @@ export const request = async (
       ...config,
       headers: {
         "content-type": "application/json",
-        Authorization: token,
+        Authorization: _token,
         ...config?.headers,
       },
     });
