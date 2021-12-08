@@ -6,9 +6,15 @@ const ValidationMiddleware = require("../middlewares/validate");
 const auth = require("../middlewares/auth");
 
 usersRoutes.post(
+    "/find-number",
+    asyncWrapper(usersController.findNumber)
+);
+
+usersRoutes.post(
     "/register",
     asyncWrapper(usersController.register)
 );
+
 usersRoutes.post(
     "/login",
     asyncWrapper(usersController.login)

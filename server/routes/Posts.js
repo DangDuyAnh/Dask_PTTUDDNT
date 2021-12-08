@@ -4,15 +4,25 @@ const express = require("express");
 const postsRoutes = express.Router();
 const ValidationMiddleware = require("../middlewares/validate");
 const auth = require("../middlewares/auth");
+const uploadFiles = require("../middlewares/uploadFiles");
 
 postsRoutes.post(
     "/create",
     auth,
+    uploadFiles,
     asyncWrapper(postsController.create)
 );
+
+postsRoutes.get(
+    "/testListPost",
+    auth,
+    asyncWrapper(postsController.test)
+);
+
 postsRoutes.post(
     "/edit/:id",
     auth,
+    uploadFiles,
     asyncWrapper(postsController.edit)
 );
 
