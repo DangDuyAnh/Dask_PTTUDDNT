@@ -2,15 +2,18 @@ import * as React from 'react';
 import { StyleSheet, Text, TextInput, View, TouchableHighlight, Alert} from 'react-native';
 
 import * as Const from '../../config/Constants';
-import { AuthContext } from '../../utility/context';
+import { GlobalContext } from '../../utility/context';
 
 const Login = (props) => {
 
+  // const { signIn } = React.useContext(AuthContext);
+  const { globalFunction } = React.useContext(GlobalContext);
   const [dataUser, setDataUser] = React.useState({
     phone: '',
     password: ''
   });
-  const { signIn } = React.useContext(AuthContext);
+  const [focusPhone, setFocusPhone] = React.useState(false);
+  const [focusPassword, setFocusPassword] = React.useState(false);
 
   const register = () => props.navigation.navigate('Tạo tài khoản');
 
@@ -28,24 +31,61 @@ const Login = (props) => {
     });
   };
 
-  const handleLogin = () => {
-    if ((dataUser.phone !== '12345') || (dataUser.password !== '1')) {
-      Alert.alert('Invalid User!', 'Username or password is incorrect.', [
-        {text: 'Okay'}
-      ]);
-    return;
+  const handleLogin = async () => {
+    if (dataUser.phone === ''){
+      Alert.alert('Hãy điền đầy đủ thông tin!', 'Số điện thoại không nên để trống.', [{text: 'Okay'}]);
+      return;
+      }
+    if (dataUser.password === ''){
+      Alert.alert('Hãy điền đầy đủ thông tin!', 'Mật khẩu không nên để trống.', [{text: 'Okay'}]);
+      return;
+      }
+
+    try {
+      const response = await fetch(Const.API_URL+'/api/users/login', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          phonenumber: dataUser.phone,
+          password: dataUser.password,
+        })
+      });
+      const json = await response.json();
+      console.log(json)
+      //if (typeof json.data === 'undefined')
+      if (json.user === undefined) {
+        Alert.alert('Tài khoản không tồn tại!', 'Số điện thoại hoặc mật khẩu không đúng.', [
+          {text: 'Okay'}
+        ]);
+        return;
+      } else {
+        globalFunction.signIn({token:json.token, user:json.user});
+      }
+    } catch (error) {
+      console.error(error);
     }
-    signIn();
   }
+
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}> Dask </Text>
       <View style={{marginTop: 50}}>
-          <TextInput style={styles.textInput} keyboardType="phone-pad" 
-          placeholder="Số điện thoại" onChangeText={(val) => handlePhoneChange(val)} />
-          <TextInput style={styles.textInput} secureTextEntry={true} 
-          placeholder="Mật khẩu" onChangeText={(val) => handlePasswordChange(val)}/>
+          <TextInput style={[styles.textInput, focusPhone ? styles.textFocus : styles.textNotFocus]} 
+          keyboardType="phone-pad" placeholder="Số điện thoại" onChangeText={(val) => handlePhoneChange(val)} 
+          onFocus={() => {
+            setFocusPhone(true);
+            setFocusPassword(false);
+          }}/>
+          <TextInput style={[styles.textInput, focusPassword ? styles.textFocus : styles.textNotFocus]} 
+          secureTextEntry={true} placeholder="Mật khẩu" onChangeText={(val) => handlePasswordChange(val)}
+          onFocus={() => {
+            setFocusPhone(false);
+            setFocusPassword(true);
+          }}/>
       </View>
 
       <View style={styles.buttonContainer}>
@@ -79,10 +119,16 @@ const styles = StyleSheet.create({
     },
     textInput: {
       paddingBottom: 8,
-      borderBottomWidth: 1,
-      borderBottomColor: "#8D8686",
       fontSize: 24,
       margin: 6,
+    },
+    textFocus: {
+      borderBottomWidth: 2,
+      borderBottomColor: Const.COLOR_THEME,
+    },
+    textNotFocus: {
+      borderBottomWidth: 1,
+      borderBottomColor: "#8D8686",
     },
     buttonContainer: {
       marginTop: 40,
