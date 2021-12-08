@@ -1,32 +1,42 @@
 import * as React from 'react';
-import EncryptedStorage from 'react-native-encrypted-storage';
+import * as SecureStore from 'expo-secure-store';
 import { NavigationContainer } from '@react-navigation/native';
 
-import { AuthContext } from './utility/context';
+import { GlobalContext } from './utility/context';
 import WaitScreen from './screens/unauthenticattion/WaitScreen';
 import LoginStack from './screens/unauthenticattion/LoginStack';
-import MainTab from './screens/authentication/MainTab';
+import MainStack from './screens/authentication/MainStack';
+import ChatStack from './screens/authentication/ChatStack';
+import { navigationRef } from './RootNavigation';
 
 function App() {
   const initialLoginState = {
     isLoading: true,
-    user: null,
     userToken: null,
+    user: null,
+    postVideo: [],
+    postImages: [],
+    postDescription: null,
+    oldImages: [],
+    oldVideo: [],
+    postId: null,
   };
 
-  const loginReducer = (prevState, action) => {
+  const globalReducer = (prevState, action) => {
     switch( action.type ) {
       case 'RETRIEVE_TOKEN': 
         return {
           ...prevState,
           userToken: action.token,
           isLoading: false,
+          user: action.user,
         };
       case 'LOGIN': 
         return {
           ...prevState,
           userToken: action.token,
           isLoading: false,
+          user: action.user,
         };
       case 'LOGOUT': 
         return {
@@ -34,27 +44,77 @@ function App() {
           userToken: null,
           isLoading: false,
         };
+      case 'UPDATE_POST_DESCRIPTION':
+        return {
+          ...prevState,
+          postDescription: action.post
+        }
+      case 'UPDATE_POST_IMAGES':
+        return {
+          ...prevState,
+          postImages: action.images
+        }
+      case 'UPDATE_POST_VIDEO':
+        return {
+          ...prevState,
+          postVideo: action.video
+        }
+      case 'UPDATE_OLD_IMAGES':
+        return {
+          ...prevState,
+          oldImages: action.oldimages
+        }
+      case 'UPDATE_OLD_VIDEO':
+        return {
+          ...prevState,
+          oldVideo: action.oldvideo
+        }
+      case 'UPDATE_POST_ID':
+        return {
+          ...prevState,
+          postId: action.postId
+        }
     }
   };
+  const [globalState, dispatch] = React.useReducer(globalReducer, initialLoginState);
 
-  const [loginState, dispatch] = React.useReducer(loginReducer, initialLoginState);
-
-  const authContext = React.useMemo(
+  const globalFunction = React.useMemo(
     () => ({
+      updatePostDescription: (data) => {
+        dispatch({ type: 'UPDATE_POST_DESCRIPTION', post: data });
+      },
+      updatePostImages: (data) => {
+        dispatch({ type: 'UPDATE_POST_IMAGES', images: data });
+      },
+      updatePostVideo: (data) => {
+        dispatch( {type: 'UPDATE_POST_VIDEO', video: data});
+      },
+      updateOldImages: (data) => {
+        dispatch({ type: 'UPDATE_OLD_IMAGES', oldimages: data})
+      },
+      updatePostId: (data) => {
+        dispatch({ type: 'UPDATE_POST_ID', postId: data})
+      },
+      updateOldVideo: (data) => {
+        dispatch({ type: 'UPDATE_OLD_VIDEO', oldvideo: data})
+      },
       signIn: async (data) => {
         try {
-          await EncryptedStorage.setItem('userToken', 
-          JSON.stringify({
-            token : "dummy-auth-token"
-        }));
+          // await EncryptedStorage.setItem('userToken', data.token);
+          // await EncryptedStorage.setItem('user', JSON.stringify(data.user));
+          await SecureStore.setItemAsync('userToken', data.token);
+          await SecureStore.setItemAsync('user', JSON.stringify(data.user));
         } catch(e) {
           console.log(e);
         }
-        dispatch({ type: 'LOGIN', token: 'dummy-auth-token' });
+        dispatch({ type: 'LOGIN', token: data.token, user: data.user });
       },
       signOut: async() => {
         try {
-          await EncryptedStorage.removeItem('userToken');
+          // await EncryptedStorage.removeItem('user');
+          // await EncryptedStorage.removeItem('userToken');
+          await SecureStore.deleteItemAsync('user');
+          await SecureStore.deleteItemAsync('userToken');
         } catch(e) {
           console.log(e);
         }
@@ -68,29 +128,35 @@ function App() {
     setTimeout(async() => {
     // const bootstrapAsync = async () => {
       let userToken;
+      let user;
       try {
-        userToken = await EncryptedStorage.getItem("userToken");
+        // userToken = await EncryptedStorage.getItem("userToken");
+        // user = await EncryptedStorage.getItem("user");
+        userToken = await SecureStore.getItemAsync('userToken');
+        user = await SecureStore.getItemAsync('user');
       } catch (e) {
         console.log(e);
       }
-      dispatch({ type: 'RETRIEVE_TOKEN', token: userToken });
+      dispatch({ type: 'RETRIEVE_TOKEN', token: userToken, user: JSON.parse(user) });
     // bootstrapAsync();
     }, 1000);
   }, []);
 
 
-  if( loginState.isLoading ) {
+  if( globalState.isLoading ) {
     return(
       <WaitScreen />
     );
   }
 
   return (
-    <AuthContext.Provider value={authContext}>
-      <NavigationContainer>
-      { loginState.userToken !== null ? <MainTab /> : <LoginStack /> }
+    <GlobalContext.Provider value={{globalState: globalState, globalFunction}}>
+      <NavigationContainer ref={navigationRef}>
+      { globalState.userToken !== null ? 
+      <MainStack /> && <ChatStack />
+      : <LoginStack /> }
       </NavigationContainer>
-    </AuthContext.Provider>
+    </GlobalContext.Provider>
   )
 }
 
