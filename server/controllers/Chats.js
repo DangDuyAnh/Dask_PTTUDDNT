@@ -9,7 +9,7 @@ const httpStatus = require("../utils/httpStatus");
 const chatController = {};
 chatController.send = async (req, res, next) => {
     try {
-        let userId = "617f0af2549fef460c878c6e";//req.userId;
+        let userId = req.userId;
         const {
             name,
             chatId,
@@ -88,7 +88,7 @@ chatController.getMessages = async (req, res, next) => {
     try {
         let messages = await MessagesModel.find({
             chat: req.params.chatId
-        }).populate('user');
+        }, {}, { sort: {'createdAt': -1 } }).populate('user');
         return res.status(httpStatus.OK).json({
             data: messages
         });
@@ -100,7 +100,7 @@ chatController.getMessages = async (req, res, next) => {
 }
 chatController.getListConversations = async (req, res, next) => {
     try {
-        let userId = "617f0af2549fef460c878c6e";//req.userId;
+        let userId = req.userId; //"617f0af2549fef460c878c6e"
         let array = await ChatModel.find();
         let chats = array.filter(element => {
             return element.member.includes(userId)
@@ -115,15 +115,17 @@ chatController.getListConversations = async (req, res, next) => {
             chat.member.forEach(element => {
                 if (element != userId) id = element;
             });
-            console.log(id);
             let receiver = await UserModel.findById(id);
             receivers.push(receiver);
         }; 
         await Promise.all(chats.map(getLastMessages));
-        returnArray = [];
+        let returnArray = [];
         chats.forEach((chat, idx) => {
-            returnArray.push({chat: chats[idx], lastMessage: lastMessages[idx], receiver: receivers[idx]})
+            returnArray.push({chat: chats[idx], lastMessage: lastMessages[idx], sender: userId, receiver: receivers[idx]})
         });
+        // const sortedReturnArray = returnArray.sort((item1, item2) => new Date(item1.lastMessage.createdAt) - new Date(item2.lastMessage.createdAt));
+        // console.log(sortedReturnArray[0].receiver.username);
+        // console.log(sortedReturnArray)
         return res.status(httpStatus.OK).json({
             data: returnArray
         });

@@ -5,7 +5,16 @@ const httpStatus = require("../utils/httpStatus");
 const bcrypt = require("bcrypt");
 const {JWT_SECRET} = require("../constants/constants");
 const uploadFile = require('../functions/uploadFile');
+const {GENDER_FEMALE} = require("../constants/constants");
 const usersController = {};
+
+usersController.findNumber = async (req, res, next) => {
+    const {phonenumber} = req.body;
+    let user = await UserModel.findOne({
+        phonenumber: phonenumber
+    })
+    res.json({data:user});   
+    }
 
 usersController.register = async (req, res, next) => {
     try {
@@ -13,11 +22,19 @@ usersController.register = async (req, res, next) => {
             phonenumber,
             password,
             username,
+            birthday,
+            gender
         } = req.body;
 
         let user = await UserModel.findOne({
             phonenumber: phonenumber
         })
+
+        let avatar = "/uploads/images/DefaultMale.jpg";
+        let cover_image = "/uploads/images/DefaultCover.jpg";
+        if (gender === GENDER_FEMALE) {
+            avatar = "/uploads/images/DefalutFemale.jpg"
+        }
 
         if (user) {
             return res.status(httpStatus.BAD_REQUEST).json({
@@ -27,14 +44,14 @@ usersController.register = async (req, res, next) => {
         //Hash password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
-        let avatar  = await DocumentModel.findById("60c39f54f0b2c4268eb53367");
-        let coverImage  = await DocumentModel.findById("60c39eb8f0b2c4268eb53366");
         user = new UserModel({
             phonenumber: phonenumber,
             password: hashedPassword,
             username: username,
-            avatar: "60c39f54f0b2c4268eb53367",
-            cover_image: "60c39eb8f0b2c4268eb53366"
+            birthday: birthday,
+            gender: gender,
+            avatar: avatar,
+            cover_image: cover_image
         });
 
         try {
@@ -43,17 +60,11 @@ usersController.register = async (req, res, next) => {
             // login for User
             // create and assign a token
             const token = jwt.sign(
-                {username: savedUser.username, firstName: savedUser.firstName, lastName: savedUser.lastName, id: savedUser._id},
+                {username: savedUser.username, phonenumber: savedUser.phonenumber, id: savedUser._id},
                 JWT_SECRET
             );
             res.status(httpStatus.CREATED).json({
-                data: {
-                    id: savedUser._id,
-                    phonenumber: savedUser.phonenumber,
-                    username: savedUser.username,
-                    avatar: avatar,
-                    cover_image: coverImage,
-                },
+                user: user,
                 token: token
             })
         } catch (e) {
@@ -99,11 +110,7 @@ usersController.login = async (req, res, next) => {
         );
         delete user["password"];
         return res.status(httpStatus.OK).json({
-            data: {
-                id: user._id,
-                phonenumber: user.phonenumber,
-                username: user.username,
-            },
+            user: user,
             token: token
         })
     } catch (e) {
