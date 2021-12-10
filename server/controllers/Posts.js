@@ -109,7 +109,6 @@ postsController.create = async (req, res, next) => {
         let images = [];
         let videos = [];
 
-        console.log(videoFiles);
         imageFiles.forEach((item) => {
             images.push('/uploads/images/' + item.filename);
         })
@@ -117,8 +116,6 @@ postsController.create = async (req, res, next) => {
         videoFiles.forEach((item) => {
             videos.push('/uploads/videos/' + item.filename);
         })
-        console.log(images)
-        console.log(videos);
         
         const post = new PostModel({
             author: userId,
@@ -299,7 +296,6 @@ postsController.edit = async (req, res, next) => {
         let images = [];
         let videos = [];
 
-        console.log(videoFiles);
         imageFiles.forEach((item) => {
             images.push('/uploads/images/' + item.filename);
         })
@@ -438,7 +434,6 @@ postsController.list = async (req, res, next) => {
         let postWithIsLike = [];
         for (let i = 0; i < posts.length; i ++) {
             let postItem = posts[i];
-            console.log(postItem)
             postItem.isLike = postItem.like.includes(req.userId);
             postWithIsLike.push(postItem);
         }
