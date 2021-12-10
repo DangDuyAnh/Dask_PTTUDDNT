@@ -17,8 +17,21 @@ chatsRoutes.get(
 );
 
 chatsRoutes.get(
-    "/getListConversation",
+    "/getListConversations",
     auth,
-    asyncWrapper(chatController.getListConversation)
-)
+    asyncWrapper(chatController.getListConversations),
+);
+
+chatsRoutes.get(
+    "/deleteMessage/:messageId",
+    auth,
+    asyncWrapper(chatController.deleteMessage),
+);
+
+chatsRoutes.get(
+    "/deleteConversation/:chatId",
+    auth,
+    asyncWrapper(chatController.deleteConversation),
+);
+
 module.exports = chatsRoutes;

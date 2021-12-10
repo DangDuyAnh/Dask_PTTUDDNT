@@ -1,16 +1,19 @@
 import * as React from 'react';
 import { Ionicons, MaterialCommunityIcons, MaterialIcons} from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { SafeAreaView, StyleSheet, View, Text, StatusBar, Touchable, TouchableOpacity, TextInput } from 'react-native';
+import { StyleSheet, View, Text, StatusBar, Touchable, TouchableOpacity, TextInput } from 'react-native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import ChatTab from './chattab/ChatTab';
+import Conversation from './chattab/Conversation';
 import DiaryTab from './diarytab/DiaryTab';
 import ProfileTab from './profiletab/ProfileTab';
-import { Contact } from './contacttab/Contact';
+import {Contact} from './contacttab/Contact';
 import * as Const from '../../config/Constants';
 import * as RootNavigation from '../../RootNavigation';
 
 const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
 
 const styles = StyleSheet.create({
   headerContainer: {

@@ -35,7 +35,7 @@ export default function DiaryTab(props) {
   }
 
   const closePopupSelf = () => {
-      setShowPopupSelf(false);
+    setShowPopupSelf(false);
   }
 
   const closePopupOther = () => {

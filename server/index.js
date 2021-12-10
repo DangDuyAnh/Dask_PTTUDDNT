@@ -6,8 +6,10 @@ const mainRouter = require("./routes/index");
 const {PORT, HOST} = require("./constants/constants");
 const {MONGO_URI} = require("./constants/constants");
 const bodyParser = require('body-parser');
-const io = require('socket.io')(3001)
-// const MessageModel = require("../models/Messages");
+const app = express();
+const server = require('http').createServer(app);
+const io = require('socket.io')(server);
+const MessageModel = require("./models/Messages");
 
 // connect to mongodb
 mongoose.connect(MONGO_URI, {
@@ -20,7 +22,7 @@ mongoose.connect(MONGO_URI, {
     .catch(err => {
         console.log(err);
     })
-const app = express();
+
 // use middleware to parse body req to json
 app.use(express.json());
 
@@ -36,25 +38,41 @@ app.get('/settings', function (req, res) {
     res.send('Settings Page');
 });
 
+// app.listen(PORT, HOST, () => {
+//     console.log("server start - " + PORT);
+// })
 
-app.listen(PORT, HOST, () => {
-    console.log("server start - " + PORT);
+server.listen(PORT, HOST, () => {
+    console.log("server running on port: " + PORT)
 })
 
 // Socket.io chat realtime
+// io.on('connection', (socket) => {
+//     MessageModel.find().then(result => {
+//         socket.emit('output-messages', result)
+//     })
+//     console.log('a user connected');
+//     socket.emit('message', 'Hello world');
+//     socket.on('disconnect', () => {
+//         console.log('user disconnected');
+//     });
+//     socket.on('chatmessage', msg => {
+//         const message = new MessageModel({ msg });
+//         message.save().then(() => {
+//             io.emit('message', msg)
+//         })
+//     })
+// });
 io.on('connection', (socket) => {
-    MessageModel.find().then(result => {
-        socket.emit('output-messages', result)
-    })
-    console.log('a user connected');
-    socket.emit('message', 'Hello world');
+    console.log(socket.id + ': connected');
+    socket.emit('id', socket.id);
+
     socket.on('disconnect', () => {
-        console.log('user disconnected');
-    });
-    socket.on('chatmessage', msg => {
-        // const message = new MessageModel({ msg });
-        message.save().then(() => {
-            io.emit('message', msg)
-        })
+        console.log(socket.id + ': disconnected')
     })
-});
+
+    socket.on('chat message', data => {
+        io.sockets.emit('chat message', {data: data, id: socket.id});
+        console.log(data);
+    })
+})

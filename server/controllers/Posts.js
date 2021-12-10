@@ -434,6 +434,7 @@ postsController.list = async (req, res, next) => {
         let postWithIsLike = [];
         for (let i = 0; i < posts.length; i ++) {
             let postItem = posts[i];
+            console.log(postItem)
             postItem.isLike = postItem.like.includes(req.userId);
             postWithIsLike.push(postItem);
         }

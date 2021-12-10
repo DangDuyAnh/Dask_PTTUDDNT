@@ -6,6 +6,7 @@ import { GlobalContext } from './utility/context';
 import WaitScreen from './screens/unauthenticattion/WaitScreen';
 import LoginStack from './screens/unauthenticattion/LoginStack';
 import MainStack from './screens/authentication/MainStack';
+import ChatStack from './screens/authentication/ChatStack';
 import { navigationRef } from './RootNavigation';
 
 function App() {
@@ -152,7 +153,8 @@ function App() {
     <GlobalContext.Provider value={{globalState: globalState, globalFunction}}>
       <NavigationContainer ref={navigationRef}>
       { globalState.userToken !== null ? 
-      <MainStack />
+      // <MainStack />
+      <MainStack /> && <ChatStack />
       : <LoginStack /> }
       </NavigationContainer>
     </GlobalContext.Provider>
