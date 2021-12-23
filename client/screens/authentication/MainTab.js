@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Ionicons, MaterialCommunityIcons, MaterialIcons} from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { StyleSheet, View, Text, StatusBar, Touchable, TouchableOpacity, TextInput } from 'react-native';
+import { StyleSheet, View, Text, StatusBar, Touchable, TouchableOpacity, TextInput, Button } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import socketIOClient from "socket.io-client";
 
@@ -47,15 +47,13 @@ const styles = StyleSheet.create({
 function Header(props) {
   const change = props.onChangeText;
   const [text, onChangeText] = React.useState(props.searchText);
-  const [notiCount, setNotiCount] = React.useState(0);
-  const { globalState } = React.useContext(GlobalContext);
+  const { globalState, globalFunction } = React.useContext(GlobalContext);
 
   React.useEffect(() => {
     try {
       let io = socketIOClient(Const.API_URL);
       io.emit('notification', globalState.user._id);
       io.on("notification", () => {
-        console.log('hey hey it works')
         getData();
       });
       const getData = async () => {
@@ -68,8 +66,9 @@ function Header(props) {
         },
       });
       const json = await response.json();
-      let statusCount = json.data.filter(noti => noti.status === 0).length;
-      setNotiCount(statusCount);
+      let notiCount = json.data.filter(noti => noti.status === 0).length
+      globalFunction.updateCountNoti(notiCount);
+      setNotiCount(notiCount)
       };
       getData();
     } catch (error) {
@@ -101,10 +100,11 @@ function Header(props) {
         <TouchableOpacity style={{position: 'relative'}} onPress={() => {
           RootNavigation.navigate('Thông báo')
         }}>
-          {(notiCount !== 0)&&<View style={{position: 'absolute', zIndex:3, left: '50%', top: '-30%', backgroundColor: 'red'
+          {(globalState.countNoti === undefined || globalState.countNoti === null || globalState.countNoti === 0)?null
+          :<View style={{position: 'absolute', zIndex:3, left: '50%', top: '-30%', backgroundColor: 'red'
           , justifyContent: 'center', alignItems: 'center', borderRadius: 30}}>
             <Text style={{color: 'white', fontSize: 12, paddingLeft: 5, paddingRight: 5,
-             paddingBottom: 1, paddingTop: 1, }}>{notiCount}</Text>
+             paddingBottom: 1, paddingTop: 1, }}>{globalState.countNoti}</Text>
           </View>}
           <Ionicons style={{marginRight: 5}} name="ios-notifications-outline" size={26} color="white"  />
         </TouchableOpacity> 

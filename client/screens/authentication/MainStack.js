@@ -43,7 +43,10 @@ export default function MainStack(){
             <Stack.Screen options={{headerShown: false}} name= 'PreviewVideo' component={PreviewVideo} />
             <Stack.Screen name='Thông báo' component={Notification}/>
             <Stack.Screen name='Bài viết' component={SinglePost} />
-            <Stack.Screen name="Conversation" component={Conversation}/>
+            <Stack.Screen name="Conversation" component={Conversation} options={({route}) => ({
+                title: route.params.chatName,
+                //headerBackTitleVisible: false
+            })}/>
         </Stack.Navigator>
     );
 }

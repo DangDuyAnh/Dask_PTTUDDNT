@@ -80,6 +80,11 @@ function App() {
           ...prevState,
           postId: action.postId
         }
+      case 'UPDATE_COUNT_NOTI':
+        return {
+          ...prevState,
+          countNoti: action.countNoti
+        }
     }
   };
   const [globalState, dispatch] = React.useReducer(globalReducer, initialLoginState);
@@ -103,6 +108,9 @@ function App() {
       },
       updateOldVideo: (data) => {
         dispatch({ type: 'UPDATE_OLD_VIDEO', oldvideo: data})
+      },
+      updateCountNoti: (data) => {
+        dispatch({ type: 'UPDATE_COUNT_NOTI', countNoti: data})
       },
       signIn: async (data) => {
         try {

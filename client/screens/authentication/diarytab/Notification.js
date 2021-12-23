@@ -9,7 +9,7 @@ import {FormatTime} from '../../../utility/FormatTime'
 import * as RootNavigation from '../../../RootNavigation';
 
 export default function Notification (props) {
-    const { globalState } = React.useContext(GlobalContext);
+    const { globalState, globalFunction } = React.useContext(GlobalContext);
     const [notiList, setNotiList] = useState([]);
     const [finishGetData, setFinishGetData] = useState(false);
 
@@ -18,7 +18,6 @@ export default function Notification (props) {
             let io = socketIOClient(Const.API_URL);
             io.emit('notification', globalState.user._id);
             io.on("notification", () => {
-                console.log('hey hey it works here')
                 getData();
               });
             const getData = async () => {  
@@ -53,6 +52,27 @@ export default function Notification (props) {
                     Authorization: `Bearer ${globalState.userToken}`,
                 },
             });
+            let response = await fetch(Const.API_URL+'/api/notifications/list', {
+                method: 'GET',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${globalState.userToken}`,
+                },
+                });
+                let json = await response.json();
+                setNotiList(json.data);
+
+            response = await fetch(Const.API_URL+'/api/notifications/list', {
+                method: 'GET',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${globalState.userToken}`,
+                },
+                });
+            json = await response.json();
+            globalFunction.updateCountNoti(json.data.filter(noti => noti.status === 0).length);
             }
         } catch (error) {
             console.error(error);
