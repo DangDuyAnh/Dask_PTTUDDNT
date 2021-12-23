@@ -184,24 +184,28 @@ chatController.getListConversations = async (req, res, next) => {
         let chats = array.filter(element => {
             return element.member.includes(userId)
         });
-        let lastMessages = [];
-        let receivers = [];
+
+        let lastMessages = new Map();
+        let receivers = new Map();
         async function getLastMessages(chat) {
             let lastMessage = await MessagesModel.findOne({chat: chat._id}, {}, { sort: {'createdAt': -1 } });
-            // console.log(lastMessage);
-            lastMessages.push(lastMessage);
+            lastMessages.set(chat._id, lastMessage);
             let id;
             chat.member.forEach(element => {
                 if (element != userId) id = element;
             });
             let receiver = await UserModel.findById(id);
-            receivers.push(receiver);
+            receivers.set(chat._id, receiver);
         }; 
         await Promise.all(chats.map(getLastMessages));
         let returnArray = [];
         chats.forEach((chat, idx) => {
-            returnArray.push({chat: chats[idx], lastMessage: lastMessages[idx], sender: userId, receiver: receivers[idx]})
+            returnArray.push({chat: chat, lastMessage: lastMessages.get(chat._id), sender: userId, receiver: receivers.get(chat._id)})
         });
+
+        returnArray.sort(function(a,b){
+            return new Date(b.lastMessage.createdAt) - new Date(a.lastMessage.createdAt);
+          });
         // const sortedReturnArray = returnArray.sort((item1, item2) => new Date(item1.lastMessage.createdAt) - new Date(item2.lastMessage.createdAt));
         // console.log(sortedReturnArray[0].receiver.username);
         // console.log(sortedReturnArray)

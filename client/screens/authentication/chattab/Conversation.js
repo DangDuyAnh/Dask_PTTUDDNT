@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext, useRef } from 'react'
 import { View, ScrollView, Text, Button, Clipboard, StyleSheet, Alert } from 'react-native';
+import {FontAwesome} from '@expo/vector-icons'
 
 import io from 'socket.io-client'
 
@@ -220,6 +221,9 @@ export default function Conversation(props) {
       wrapperStyle={{
         right: {
           backgroundColor: "#2E64E5"
+        },
+        left: {
+          backgroundColor: 'white'
         }
       }}
       textStyle={{
@@ -258,7 +262,5 @@ export default function Conversation(props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });

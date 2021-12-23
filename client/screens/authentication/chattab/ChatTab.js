@@ -30,6 +30,7 @@ export default function ChatTab(props) {
   useEffect(() => {
     try {
       const getData = async () => {
+        console.log('do this')
         const response = await fetch(Const.API_URL+'/api/chats/getListConversations', {
           method: 'GET',
           headers: {
@@ -41,8 +42,6 @@ export default function ChatTab(props) {
         const json = await response.json();
         let newChatList = [];
         (json.data).forEach((item, idx) => {
-          console.log(item)
-          //console.log(item.receiver)
           newChatList.push({
             id: idx, 
             chatId: item.chat._id,
@@ -63,7 +62,6 @@ export default function ChatTab(props) {
   }, []);
   //console.log(chatList)
   return (
-    
     <FlatList
       data={chatList}
       keyExtractor={item => item.id}
@@ -96,7 +94,6 @@ export default function ChatTab(props) {
         </View>
       )}
     />
-    
   );
 }
 
