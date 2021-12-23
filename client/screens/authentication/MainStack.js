@@ -12,6 +12,7 @@ import VideoCamera from './diarytab/VideoCamera';
 import PreviewVideo from './diarytab/PreviewVideo';
 import Notification from './diarytab/Notification';
 import SinglePost from './diarytab/SinglePost';
+import Conversation from './chattab/Conversation';
 
 const Stack = createNativeStackNavigator();
 
@@ -42,6 +43,7 @@ export default function MainStack(){
             <Stack.Screen options={{headerShown: false}} name= 'PreviewVideo' component={PreviewVideo} />
             <Stack.Screen name='Thông báo' component={Notification}/>
             <Stack.Screen name='Bài viết' component={SinglePost} />
+            <Stack.Screen name="Conversation" component={Conversation}/>
         </Stack.Navigator>
     );
 }

@@ -106,8 +106,6 @@ function App() {
       },
       signIn: async (data) => {
         try {
-          // await EncryptedStorage.setItem('userToken', data.token);
-          // await EncryptedStorage.setItem('user', JSON.stringify(data.user));
           await SecureStore.setItemAsync('userToken', data.token);
           await SecureStore.setItemAsync('user', JSON.stringify(data.user));
           await sendFcmToken(data.token);
@@ -118,8 +116,6 @@ function App() {
       },
       signOut: async() => {
         try {
-          // await EncryptedStorage.removeItem('user');
-          // await EncryptedStorage.removeItem('userToken');
           let userToken = await SecureStore.getItemAsync('userToken');
           await SecureStore.deleteItemAsync('user');
           await SecureStore.deleteItemAsync('userToken');
@@ -139,8 +135,6 @@ function App() {
       let userToken;
       let user;
       try {
-        // userToken = await EncryptedStorage.getItem("userToken");
-        // user = await EncryptedStorage.getItem("user");
         userToken = await SecureStore.getItemAsync('userToken');
         user = await SecureStore.getItemAsync('user');
       } catch (e) {
@@ -180,7 +174,6 @@ function App() {
       await messaging().registerDeviceForRemoteMessages();
       const token = await messaging().getToken();
 
-      // await axios.post(Const.API_URL + '/api/notifications/register-token', {token});
       const response = await fetch(Const.API_URL+'/api/notifications/register-token', {
         method: 'POST',
         headers: {
