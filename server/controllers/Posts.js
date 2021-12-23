@@ -14,6 +14,7 @@ const {ROLE_CUSTOMER} = require("../constants/constants");
 const uploadFile = require('../functions/uploadFile');
 
 const postsController = {};
+const notificationController = require('./Notifications');
 
 // postsController.create = async (req, res, next) => {
 //     let userId = req.userId;
@@ -124,7 +125,37 @@ postsController.create = async (req, res, next) => {
             videos: videos,
             countComments: 0
             });
-        await post.save();
+        //
+        // await post.save();
+        //
+        const savePost = await post.save();
+        
+        let friends = await FriendModel.find({
+            status: "1",
+        }).or([
+            {
+                sender: userId
+            },
+            {
+                receiver: userId
+            }
+        ])
+        let listIdFriends = [];
+        for (let i = 0; i < friends.length; i++) {
+            if (friends[i].sender.toString() === userId.toString()) {
+                listIdFriends.push(friends[i].receiver);
+            } else {
+                listIdFriends.push(friends[i].sender);
+            }
+        }
+
+        async function addNoti(item, index){ 
+            await notificationController.createPostNoti(item, userId, savePost._id, 'đã thêm một kỷ niệm vào nhật ký');
+            req.io.sockets.to(item.toString()).emit("notification");
+        }
+
+        await Promise.all(listIdFriends.map(addNoti))
+
         return res.status(httpStatus.OK).json({
             data: post
         });
@@ -332,15 +363,10 @@ postsController.edit = async (req, res, next) => {
 
 postsController.show = async (req, res, next) => {
     try {
-        let post = await PostModel.findById(req.params.id).populate('images', ['fileName']).populate('videos', ['fileName']).populate({
+        let post = await PostModel.findById(req.params.id).populate({
             path: 'author',
             select: '_id username phonenumber avatar',
-            model: 'Users',
-            populate: {
-                path: 'avatar',
-                select: '_id fileName',
-                model: 'Documents',
-            },
+            model: 'Users'
         });
         if (post == null) {
             return res.status(httpStatus.NOT_FOUND).json({message: "Can not find post"});
@@ -434,7 +460,6 @@ postsController.list = async (req, res, next) => {
         let postWithIsLike = [];
         for (let i = 0; i < posts.length; i ++) {
             let postItem = posts[i];
-            console.log(postItem)
             postItem.isLike = postItem.like.includes(req.userId);
             postWithIsLike.push(postItem);
         }

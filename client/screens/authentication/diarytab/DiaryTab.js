@@ -16,6 +16,24 @@ import { PhotoList } from './Post';
 import BottomPopupSelf from '../../../components/BottomPopupSelf';
 import BottomPopupOther from '../../../components/BottomPopupOthers';
 
+export const FormatTime = ({data}) => {
+  let currentYear = new Date().getFullYear();
+  let time = new Date(data);
+  let showTime;
+  let singleMinutes = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+  let minute = time.getMinutes().toString();
+  if (singleMinutes.includes(minute)) minute = '0' + minute;
+  if (currentYear === time.getFullYear()) {
+    showTime = `${time.getDate()}/${time.getMonth()+1} lúc ${time.getHours()}:${minute}`
+  } else {
+    showTime = `${time.getDate()}/${time.getMonth()+1}/${time.getFullYear()} lúc ${time.getHours()}:${minute}`
+  }
+
+  return (
+    <Text>{showTime}</Text>
+  );
+}
+
 export default function DiaryTab(props) {
 
   const [postList, setPostList] = useState([]);
@@ -60,21 +78,6 @@ export default function DiaryTab(props) {
         Authorization: `Bearer ${globalState.userToken}`,
       },
   })
-  //  const json = await response.json();
-  //  const data = json.data
-  //  let newPosts = []
-
-  //  postList.forEach((item, idx) => {
-  //     if (item._id === data._id) {
-  //       item.isLike = data.isLike;
-  //       item.like = data.like
-  //       newPosts.push(item);
-  //     }
-  //     else {
-  //       newPosts.push(item);
-  //     } 
-  //  })
-  //  setPostList([...newPosts]);
   }
 
 
@@ -112,24 +115,6 @@ export default function DiaryTab(props) {
       console.error(error);
     }
   }, []);
-
-  const FormatTime = ({data}) => {
-    let currentYear = new Date().getFullYear();
-    let time = new Date(data);
-    let showTime;
-    let singleMinutes = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-    let minute = time.getMinutes().toString();
-    if (singleMinutes.includes(minute)) minute = '0' + minute;
-    if (currentYear === time.getFullYear()) {
-      showTime = `${time.getDate()}/${time.getMonth()+1} lúc ${time.getHours()}:${minute}`
-    } else {
-      showTime = `${time.getDate()}/${time.getMonth()+1}/${time.getFullYear()} lúc ${time.getHours()}:${minute}`
-    }
-
-    return (
-      <Text>{showTime}</Text>
-    );
-  }
 
     return (
       <ScrollView style={styles.container}>
@@ -239,7 +224,7 @@ export default function DiaryTab(props) {
     );
   }
 
-  const styles=StyleSheet.create({
+export const styles=StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: 'white'

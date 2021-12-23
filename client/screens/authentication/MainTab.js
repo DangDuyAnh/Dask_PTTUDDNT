@@ -3,6 +3,7 @@ import { Ionicons, MaterialCommunityIcons, MaterialIcons} from '@expo/vector-ico
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StyleSheet, View, Text, StatusBar, Touchable, TouchableOpacity, TextInput } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import socketIOClient from "socket.io-client";
 
 import ChatTab from './chattab/ChatTab';
 import Conversation from './chattab/Conversation';
@@ -11,6 +12,7 @@ import ProfileTab from './profiletab/ProfileTab';
 import {Contact} from './contacttab/Contact';
 import * as Const from '../../config/Constants';
 import * as RootNavigation from '../../RootNavigation';
+import { GlobalContext} from '../../utility/context';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -34,7 +36,7 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 50,
-    width: '75%',
+    width: '70%',
     fontSize: 20,
     color: 'white',
     //borderWidth: 1,
@@ -45,6 +47,36 @@ const styles = StyleSheet.create({
 function Header(props) {
   const change = props.onChangeText;
   const [text, onChangeText] = React.useState(props.searchText);
+  const [notiCount, setNotiCount] = React.useState(0);
+  const { globalState } = React.useContext(GlobalContext);
+
+  React.useEffect(() => {
+    try {
+      let io = socketIOClient(Const.API_URL);
+      io.emit('notification', globalState.user._id);
+      io.on("notification", () => {
+        console.log('hey hey it works')
+        getData();
+      });
+      const getData = async () => {
+      const response = await fetch(Const.API_URL+'/api/notifications/list', {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${globalState.userToken}`,
+        },
+      });
+      const json = await response.json();
+      let statusCount = json.data.filter(noti => noti.status === 0).length;
+      setNotiCount(statusCount);
+      };
+      getData();
+    } catch (error) {
+      console.error(error);
+    }
+  }, []);
+
   return(
     <View style={styles.headerContainer}>
       <View style={styles.headerWrapper}>
@@ -63,11 +95,19 @@ function Header(props) {
           />
       <View style={styles.headerWrapper}>
         <TouchableOpacity style={{paddingRight: 10}} onPress = {() => {
-          console.log('Hi');
           RootNavigation.navigate('Post')}}>
           <MaterialIcons name="post-add" size={26} color="white"  />
         </TouchableOpacity>
-        <Ionicons name="ios-notifications-outline" size={26} color="white"  />
+        <TouchableOpacity style={{position: 'relative'}} onPress={() => {
+          RootNavigation.navigate('Thông báo')
+        }}>
+          {(notiCount !== 0)&&<View style={{position: 'absolute', zIndex:3, left: '50%', top: '-30%', backgroundColor: 'red'
+          , justifyContent: 'center', alignItems: 'center', borderRadius: 30}}>
+            <Text style={{color: 'white', fontSize: 12, paddingLeft: 5, paddingRight: 5,
+             paddingBottom: 1, paddingTop: 1, }}>{notiCount}</Text>
+          </View>}
+          <Ionicons style={{marginRight: 5}} name="ios-notifications-outline" size={26} color="white"  />
+        </TouchableOpacity> 
       </View>
     </View>
   )

@@ -1,6 +1,7 @@
 import * as React from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { NavigationContainer } from '@react-navigation/native';
+import {View, Text} from 'react-native';
 
 import { GlobalContext } from './utility/context';
 import WaitScreen from './screens/unauthenticattion/WaitScreen';
@@ -8,6 +9,11 @@ import LoginStack from './screens/unauthenticattion/LoginStack';
 import MainStack from './screens/authentication/MainStack';
 import ChatStack from './screens/authentication/ChatStack';
 import { navigationRef } from './RootNavigation';
+import axios from 'axios';
+import * as Const from './config/Constants'
+import messaging from '@react-native-firebase/messaging';
+import * as RootNavigation from './RootNavigation';
+import NotificationController from './components/Notification'
 
 function App() {
   const initialLoginState = {
@@ -104,6 +110,7 @@ function App() {
           // await EncryptedStorage.setItem('user', JSON.stringify(data.user));
           await SecureStore.setItemAsync('userToken', data.token);
           await SecureStore.setItemAsync('user', JSON.stringify(data.user));
+          await sendFcmToken(data.token);
         } catch(e) {
           console.log(e);
         }
@@ -113,8 +120,10 @@ function App() {
         try {
           // await EncryptedStorage.removeItem('user');
           // await EncryptedStorage.removeItem('userToken');
+          let userToken = await SecureStore.getItemAsync('userToken');
           await SecureStore.deleteItemAsync('user');
           await SecureStore.deleteItemAsync('userToken');
+          await destroyFcmToken(userToken);
         } catch(e) {
           console.log(e);
         }
@@ -138,9 +147,81 @@ function App() {
         console.log(e);
       }
       dispatch({ type: 'RETRIEVE_TOKEN', token: userToken, user: JSON.parse(user) });
+
+      messaging().onNotificationOpenedApp(remoteMessage => {
+        // console.log(
+        //   'Notification caused app to open from background state:',
+        //   remoteMessage.data.custom,
+        // );
+        if (remoteMessage.data.type === 'post') {
+          RootNavigation.navigate('Bài viết', remoteMessage.data.postId);
+        }
+      });
+  
+      messaging()
+      .getInitialNotification()
+      .then(remoteMessage => {
+        if (remoteMessage) {
+          // console.log(
+          //   'notification 2'
+          // );
+          if (remoteMessage.data.type === 'post') {
+            RootNavigation.navigate('Bài viết', remoteMessage.data.postId);
+          }
+        }
+      });
     // bootstrapAsync();
     }, 1000);
   }, []);
+
+  const sendFcmToken = async (userToken) => {
+    try {
+      console.log('sendFcmToken token', userToken);
+      await messaging().registerDeviceForRemoteMessages();
+      const token = await messaging().getToken();
+
+      // await axios.post(Const.API_URL + '/api/notifications/register-token', {token});
+      const response = await fetch(Const.API_URL+'/api/notifications/register-token', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${userToken}`,
+        },
+        body: JSON.stringify({
+          token: token,
+        })
+      });
+      const json = await response.json();
+      console.log(json);
+    } catch (err) {
+      console.log(err.response.data);
+      return;
+    }
+  };
+
+  const destroyFcmToken = async (userToken) => {
+    try {
+      await messaging().registerDeviceForRemoteMessages();
+      const token = await messaging().getToken();
+      const response = await fetch(Const.API_URL+'/api/notifications/destroy-token', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${userToken}`,
+        },
+        body: JSON.stringify({
+          token: token,
+        })
+      });
+      const json = await response.json();
+      console.log(json);
+    } catch (err) {
+      console.log(err.response.data);
+      return;
+    }
+  };
 
 
   if( globalState.isLoading ) {
@@ -153,8 +234,11 @@ function App() {
     <GlobalContext.Provider value={{globalState: globalState, globalFunction}}>
       <NavigationContainer ref={navigationRef}>
       { globalState.userToken !== null ? 
-      // <MainStack />
-      <MainStack /> && <ChatStack />
+      <>
+      <MainStack />
+      <NotificationController />
+      </>
+      // <MainStack /> && <ChatStack />
       : <LoginStack /> }
       </NavigationContainer>
     </GlobalContext.Provider>

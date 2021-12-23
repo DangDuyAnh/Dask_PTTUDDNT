@@ -1,5 +1,6 @@
 const httpStatus = require("../utils/httpStatus");
 const PostModel = require("../models/Posts");
+const notificationController = require('./Notifications');
 
 const postLikeController = {};
 
@@ -19,7 +20,11 @@ postLikeController.action = async (req, res, next) => {
         if (arrLikeNotContainCurrentUser.length === arrLike.length) {
             arrLike.push(userId);
             isLike = true;
-        } else {
+            if (post.author.toString() !== userId.toString()) {
+                await notificationController.createPostNoti(post.author, userId, post._id, 'vừa thả tim bài viết của bạn');
+                req.io.sockets.to(post.author.toString()).emit("notification");
+            }
+            } else {
             arrLike = arrLikeNotContainCurrentUser;
         }
         post = await PostModel.findOneAndUpdate({_id: req.params.postId}, {

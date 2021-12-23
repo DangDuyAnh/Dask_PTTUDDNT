@@ -30,6 +30,14 @@ app.use(express.json());
 app.use(cors());
 app.use(bodyParser.json({limit: "50mb"}));
 app.use(bodyParser.urlencoded({limit: "50mb", extended: true, parameterLimit:50000}));
+
+// Assign socket object to every request
+app.use(function (req, res, next) {
+    req.io = io;
+    next();
+  });
+
+
 // route middleware
 app.use("/", mainRouter);
 app.use('/uploads', express.static('uploads'));
@@ -37,10 +45,6 @@ app.use('/uploads', express.static('uploads'));
 app.get('/settings', function (req, res) {
     res.send('Settings Page');
 });
-
-// app.listen(PORT, HOST, () => {
-//     console.log("server start - " + PORT);
-// })
 
 server.listen(PORT, HOST, () => {
     console.log("server running on port: " + PORT)
@@ -70,6 +74,12 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         console.log(socket.id + ': disconnected')
     })
+
+    //DangDuyAnh
+    socket.on('notification', function(room) {
+        console.log('joining room', room);
+        socket.join(room);
+    });
 
     socket.on('chat message', data => {
         io.sockets.emit('chat message', {data: data, id: socket.id});

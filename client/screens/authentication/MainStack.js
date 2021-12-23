@@ -10,6 +10,8 @@ import VideoPicker from './diarytab/VideoPicker';
 import Preview from './diarytab/Preview';
 import VideoCamera from './diarytab/VideoCamera';
 import PreviewVideo from './diarytab/PreviewVideo';
+import Notification from './diarytab/Notification';
+import SinglePost from './diarytab/SinglePost';
 
 const Stack = createNativeStackNavigator();
 
@@ -38,6 +40,8 @@ export default function MainStack(){
             <Stack.Screen options={{headerShown: false}} name='Preview' component={Preview} />
             <Stack.Screen options={{headerShown: false}} name= 'VideoCamera' component={VideoCamera} />
             <Stack.Screen options={{headerShown: false}} name= 'PreviewVideo' component={PreviewVideo} />
+            <Stack.Screen name='Thông báo' component={Notification}/>
+            <Stack.Screen name='Bài viết' component={SinglePost} />
         </Stack.Navigator>
     );
 }
