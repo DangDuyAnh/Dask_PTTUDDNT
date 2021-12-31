@@ -10,6 +10,7 @@ const app = express();
 const server = require('http').createServer(app);
 const io = require('socket.io')(server);
 const MessageModel = require("./models/Messages");
+const chatController = require("./controllers/Chats");
 
 // connect to mongodb
 mongoose.connect(MONGO_URI, {
@@ -67,12 +68,21 @@ server.listen(PORT, HOST, () => {
 //         })
 //     })
 // });
+let userIds = {};
+let userIdDict = {};
 io.on('connection', (socket) => {
     console.log(socket.id + ': connected');
     socket.emit('id', socket.id);
 
-    socket.on('disconnect', () => {
-        console.log(socket.id + ': disconnected')
+    socket.on('disconnect', async () => {
+        console.log(socket.id + ': disconnected');
+        if (userIdDict[socket.id]) {
+            let userId = userIdDict[socket.id]
+            userIds[userId] = userIds[userId].filter(item => item !== socket.id);
+            delete userIdDict[socket.id]
+            if (userIds[userId].length === 0)
+                await chatController.clearUserStatus(userId);
+        }
     })
 
     //DangDuyAnh
@@ -81,8 +91,12 @@ io.on('connection', (socket) => {
         socket.join(room);
     });
 
-    socket.on('chat message', data => {
-        io.sockets.emit('chat message', {data: data, id: socket.id});
-        console.log(data);
+    socket.on('chat',async obj => {
+        console.log('joining chat room', obj.chatId);
+        socket.join(obj.chatId);
+        if (!userIds[obj.userId]) userIds[obj.userId] = [];
+        userIds[obj.userId].push(socket.id);
+        userIdDict[socket.id] = obj.userId;
+        await chatController.saveUserStatus(obj.userId);
     })
 })

@@ -11,7 +11,7 @@ export default class BottomPopupOther extends Component {
       }
 
     render() {
-    const { show, animationType, closePopup, haveOutsideTouch, data } = this.props;
+    const { show, animationType, closePopup, haveOutsideTouch, data, report, blockDiary, hideDiary } = this.props;
 
     return (
         <Modal
@@ -40,7 +40,7 @@ export default class BottomPopupOther extends Component {
                     paddingTop: 5,
                 }}>
                     <TouchableHighlight style={{flexDirection: 'row', flex: 1, alignItems: 'center'}}
-                    onPress = {() => {console.log(data.author.username)}}> 
+                    onPress = {hideDiary}> 
                         <View style={{flexDirection: 'row', flex: 1, alignItems: 'center', backgroundColor: 'white'}}>
                         <Ionicons name="ios-notifications-off-outline" style={styles.icon} size={26} color="black" />
                             <View style={{flex: 1}}>
@@ -54,7 +54,7 @@ export default class BottomPopupOther extends Component {
                     </TouchableHighlight>
 
                     <TouchableHighlight style={{flexDirection: 'row', flex: 1, alignItems: 'center'}}
-                    onPress = {() => {console.log('Hi')}}> 
+                    onPress = {blockDiary}> 
                         <View style={{flexDirection: 'row', flex: 1, alignItems: 'center', backgroundColor: 'white'}}>
                         <MaterialIcons name="block" style={styles.icon} size={26} color="black" />
                             <View style={{flex: 1}}>
@@ -68,7 +68,7 @@ export default class BottomPopupOther extends Component {
                     </TouchableHighlight>
 
                     <TouchableHighlight style={{flexDirection: 'row', flex: 1, alignItems: 'center'}}
-                    onPress = {() => {console.log('Hi')}}> 
+                    onPress = {report}> 
                         <View style={{flexDirection: 'row', flex: 1, alignItems: 'center', backgroundColor: 'white'}}>
                         <Octicons name="report" style={styles.icon} size={26} color="black" />
                             <View style={{flex: 1}}>

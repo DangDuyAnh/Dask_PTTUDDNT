@@ -4,8 +4,12 @@ import {ImageBackground, TouchableOpacity, StatusBar, StyleSheet, View, Permissi
 import CameraRoll from "@react-native-community/cameraroll";
 
 import { hasAndroidPermission } from '../../../utility/PermissionsAndroid';
+import { GlobalContext } from '../../../utility/context';
+import * as Const from '../../../config/Constants';
 
 export default function preview(props) {
+
+    const { globalFunction, globalState  } = React.useContext(GlobalContext);
 
     const handleSave = async () => {
         if (await hasAndroidPermission()) {
@@ -13,7 +17,19 @@ export default function preview(props) {
             CameraRoll.save(props.route.params.data.uri, {album: 'Dask'});
             // props.navigation.navigate('Post', {images: [props.route.params.data.uri]});
             if (props.route.params.mode) {
+                if (props.route.params.mode === 'edit') {
                 props.navigation.navigate('EditPost', {images: [props.route.params.data.uri]});
+                }
+                if (props.route.params.mode === 'message') {
+                await sendImage();
+                }
+                if (props.route.params.mode === 'change avatar') {
+                    await changeImage('avatar');
+                }
+                if (props.route.params.mode === 'change cover_image') {
+                    await changeImage('cover_image');
+                }
+
             }
             else {
                 props.navigation.navigate('Post', {images: [props.route.params.data.uri]});
@@ -24,6 +40,67 @@ export default function preview(props) {
             }
         }
     }
+
+    const changeImage = async (imageKind) => {
+        try {
+          const formData = new FormData();
+  
+          formData.append("changeImage", imageKind);
+          formData.append("images", {
+            uri: props.route.params.data.uri,
+            type: "image/jpeg",
+            name: `image.jpg`,
+          })
+  
+          const response = await fetch(Const.API_URL+'/api/users/edit', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'multipart/form-data',
+              Accept: "application/json",
+              Authorization: `Bearer ${globalState.userToken}`,
+            },
+            body: formData,
+          });
+          const json = await response.json();
+          globalFunction.changeUserInfo({user: json.data});
+          props.navigation.navigate('Main tab')
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+    const sendImage = async () => {
+        try {
+          const formData = new FormData();
+  
+          formData.append("chatId", props.route.params.chatId);
+          formData.append("type", "PRIVATE_CHAT");
+          formData.append("images", {
+            uri: props.route.params.data.uri,
+            type: "image/jpeg",
+            name: `image.jpg`,
+          })
+  
+          const response = await fetch(Const.API_URL+'/api/chats/send', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'multipart/form-data',
+              Accept: "application/json",
+              Authorization: `Bearer ${globalState.userToken}`,
+            },
+            body: formData,
+          });
+          const json = await response.json();
+          console.log(json);
+          props.navigation.navigate('Conversation', {
+            chatId: props.route.params.chatId,
+            userId: globalState.user._id,
+            chatName: props.route.params.chatName
+          })
+        } catch (error) {
+          console.error(error);
+        }
+      }
 
     return(
         <View style={styles.container}>

@@ -44,6 +44,12 @@ function App() {
           isLoading: false,
           user: action.user,
         };
+      case 'CHANGE_USER_INFO': {
+        return {
+          ...prevState,
+          user: action.user
+        }
+      }
       case 'LOGOUT': 
         return {
           ...prevState,
@@ -122,6 +128,14 @@ function App() {
         }
         dispatch({ type: 'LOGIN', token: data.token, user: data.user });
       },
+      changeUserInfo: async (data) => {
+        try {
+          await SecureStore.setItemAsync('user', JSON.stringify(data.user));
+        } catch(e) {
+          console.log(e)
+        }
+        dispatch({ type: 'CHANGE_USER_INFO', user: data.user});
+      },
       signOut: async() => {
         try {
           let userToken = await SecureStore.getItemAsync('userToken');
@@ -178,7 +192,6 @@ function App() {
 
   const sendFcmToken = async (userToken) => {
     try {
-      console.log('sendFcmToken token', userToken);
       await messaging().registerDeviceForRemoteMessages();
       const token = await messaging().getToken();
 
@@ -194,7 +207,6 @@ function App() {
         })
       });
       const json = await response.json();
-      console.log(json);
     } catch (err) {
       console.log(err.response.data);
       return;
@@ -217,7 +229,6 @@ function App() {
         })
       });
       const json = await response.json();
-      console.log(json);
     } catch (err) {
       console.log(err.response.data);
       return;

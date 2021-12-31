@@ -4,6 +4,7 @@ const express = require("express");
 const usersRoutes = express.Router();
 const ValidationMiddleware = require("../middlewares/validate");
 const auth = require("../middlewares/auth");
+const uploadFiles = require("../middlewares/uploadFiles");
 
 usersRoutes.post(
     "/find-number",
@@ -22,7 +23,13 @@ usersRoutes.post(
 usersRoutes.post(
     "/edit",
     auth,
+    uploadFiles,
     asyncWrapper(usersController.edit),
+);
+usersRoutes.post(
+    "/editBlock",
+    auth,
+    asyncWrapper(usersController.editBlock),
 );
 usersRoutes.post(
     "/change-password",
@@ -34,10 +41,13 @@ usersRoutes.get(
     auth,
     asyncWrapper(usersController.show),
 );
-
+usersRoutes.get(
+    "/showWithBlockFriend",
+    auth,
+    asyncWrapper(usersController.showWithBlockFriend),
+);
 usersRoutes.get(
     "/show/:id",
-    auth,
     asyncWrapper(usersController.show),
 );
 

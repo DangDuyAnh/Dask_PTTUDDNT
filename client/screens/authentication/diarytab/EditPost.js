@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import { MaterialCommunityIcons, Ionicons, Feather } from '@expo/vector-icons';
-import { StyleSheet, ScrollView, View, TextInput, KeyboardAvoidingView, TouchableOpacity, TouchableHighlight, Text, Button, Image} from 'react-native';
+import { StyleSheet, ScrollView, View, TextInput, KeyboardAvoidingView, TouchableOpacity, StatusBar, TouchableHighlight, Text, Button, Image} from 'react-native';
 import Video from 'react-native-video';
 import { AntDesign } from '@expo/vector-icons';
 
@@ -197,6 +197,7 @@ export function EditPost(props) {
 
     return(
         <KeyboardAvoidingView style = {styles.container}>
+            <StatusBar backgroundColor={Const.COLOR_THEME} hidden={false}/>
             <View style = {styles.inner}>
             <ScrollView style={{marginBottom: 70}}>
             <TextInput style = {styles.textArea} placeholder="Bạn đang nghĩ gì?" multiline={true}

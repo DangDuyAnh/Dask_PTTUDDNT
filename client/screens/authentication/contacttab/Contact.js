@@ -17,6 +17,7 @@ import { TabBar, TabView, SceneMap } from 'react-native-tab-view';
 
 import * as RootNavigation from '../../../RootNavigation';
 
+
 //import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 //LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
@@ -213,7 +214,7 @@ const styles = StyleSheet.create({
   },
 
   actionButton: {
-    marginLeft: -30,
+    marginLeft: -60,
     width: 110
   }
 
@@ -273,11 +274,40 @@ function Header(props) {
 
 function ContactElement(props) {
   const ActionButton = props.button == undefined ? null : props.button;
+  const { globalState } = React.useContext(GlobalContext);
+
+  const onPressClick = async (userId, userName) => {
+    try {
+    console.log('done');
+    const response = await fetch(Const.API_URL+'/api/chats/createChat', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        user1: globalState.user._id,
+        user2: userId
+      })
+    });
+    const json = await response.json();
+    console.log(json)
+    RootNavigation.navigate('Conversation', {
+      chatName: userName,
+      chatId: json.chat._id,
+      userId: globalState.user._id,
+      userReceiverId: userId
+    });
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
   return(
     <>
     <TouchableOpacity activeOpacity={1} onPress={() => {
-      alert("go to profile");
-      props.navigation.navigate('Post');
+      onPressClick(props.userId, props.name);
+      // console.log('done')
     }}>
       <View style={styles.feedHeader}>
         <View style = {styles.headerInner}>
@@ -894,6 +924,7 @@ function MainContact(props) {
 
   return (
     <>
+    <StatusBar  backgroundColor={Const.COLOR_THEME}/>
     <ScrollView
       contentContainerStyle={styles.scrollView}
       refreshControl={

@@ -55,15 +55,34 @@ const usersSchema = new mongoose.Schema({
     cover_image: {
         type: String,
     },
-    blocked_inbox: {
-        type: Array,
-        required: false
-    },
-    blocked_diary: {
-        type: Array,
-        required: false
-    },
-    
+    blocked_inbox: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Users",
+            default: []
+        }
+    ],
+    blocked_diary: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Users",
+            default: []
+        }
+    ],
+    blocked_notiInbox: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Users",
+            default: []
+        }
+    ],
+    blocked_notiDiary: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Users",
+            default: []
+        }
+    ],
 });
 
 usersSchema.index({phonenumber: 'text'});

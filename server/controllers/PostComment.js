@@ -46,14 +46,61 @@ postCommentController.create = async (req, res, next) => {
     }
 }
 
+postCommentController.delete = async (req, res, next) => {
+    try {
+        let postComment = await PostCommentModel.findByIdAndDelete(req.params.id);
+        if (postComment == null) {
+            return res.status(httpStatus.NOT_FOUND).json({message: "Can not find post comment"});
+        }
+        let postId = postComment.post;
+        let post = await PostModel.findById(postId);
+
+        await PostModel.findByIdAndUpdate(postId, {
+            countComments: post.countComments - 1 
+        });
+
+        return res.status(httpStatus.OK).json({
+            message: 'Delete post done',
+            postComment: postComment,
+        });
+    } catch(e) {
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+            message: e.message
+        });
+    }
+}
+
+postCommentController.update = async (req, res, next) => {
+    try {
+        let content = req.body.content;
+        let postId = req.params.id;
+        let postComment = await PostCommentModel.findById(postId);
+        if (postComment == null) {
+            return res.status(httpStatus.NOT_FOUND).json({message: "Can not find post comment"});
+        }
+        postComment = await PostCommentModel.findByIdAndUpdate(postId, {
+            content: content 
+        });
+
+        return res.status(httpStatus.OK).json({
+            message: 'Update post done',
+            postComment: postComment
+        });
+    } catch(e) {
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+            message: e.message
+        });
+    }
+}
+
 postCommentController.list = async (req, res, next) => {
     try {
         console.log(req.params.postId);
         let postComments = await PostCommentModel.find({
             post: req.params.postId
         }).populate('user', [
-            'username', 'phonenumber'
-        ]);
+            'username', 'avatar'
+        ]).sort({"createdAt": -1});
         return res.status(httpStatus.OK).json({
             data: postComments
         });

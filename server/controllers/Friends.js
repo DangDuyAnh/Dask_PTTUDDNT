@@ -169,6 +169,49 @@ friendsController.setRemoveFriend = async (req, res, next) => {
     }
 }
 
+friendsController.changeStatus = async (req, res, next) => {
+    try {
+        let requested = await FriendModel.findOneAndUpdate({ $or:[{sender: req.userId, receiver: req.body.userId}, 
+            {receiver: req.userId, sender: req.body.userId}]}, 
+                {status: req.body.status}
+            , {
+            new: true,
+            runValidators: true
+        });
+        return res.status(httpStatus.OK).json({
+            data: requested
+        });
+    } catch(e) {
+        console.log(e);
+    }
+}
+
+friendsController.findFriend = async (req, res, next) => {
+    try {
+        let requested = await FriendModel.findOne({ $or:[{sender: req.userId, receiver: req.body.userId}, 
+            {receiver: req.userId, sender: req.body.userId}]});
+        
+        let status = "2";
+        if (requested) status = requested.status;
+        
+        if (status === "0") {
+            if (requested.receiver.toString() === req.userId.toString())
+                status = "4";
+        }
+        
+        res.status(200).json({
+            code: 200,
+            message: "Danh sách bạn bè",
+            status: status
+        });
+
+    } catch (e) {
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+            message: e.message
+        });
+    }
+}
+
 friendsController.listFriends = async (req, res, next) => {
     try {
         if (req.body.user_id == null) {
@@ -198,6 +241,5 @@ friendsController.listFriends = async (req, res, next) => {
         });
     }
 }
-
 
 module.exports = friendsController;

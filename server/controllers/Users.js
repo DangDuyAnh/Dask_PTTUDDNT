@@ -123,63 +123,27 @@ usersController.edit = async (req, res, next) => {
     try {
         let userId = req.userId;
         let user;
-        const {
-            avatar,
-            cover_image,
-        } = req.body;
         const dataUserUpdate = {};
         const listPros = [
             "username",
             "gender",
             "birthday",
-            "description",
-            "address",
-            "city",
-            "country",
-            "avatar",
-            "cover_image"
         ];
         for (let i = 0; i < listPros.length; i++) {
             let pro = listPros[i];
-            if (req.body.hasOwnProperty(pro)) {
-                switch (pro) {
-                    case "avatar":
-                        let savedAvatarDocument = null;
-                        if (uploadFile.matchesFileBase64(avatar) !== false) {
-                            const avatarResult = uploadFile.uploadFile(avatar);
-                            if (avatarResult !== false) {
-                                let avatarDocument = new DocumentModel({
-                                    fileName: avatarResult.fileName,
-                                    fileSize: avatarResult.fileSize,
-                                    type: avatarResult.type
-                                });
-                                savedAvatarDocument = await avatarDocument.save();
-                            }
-                        } else {
-                            savedAvatarDocument = await DocumentModel.findById(avatar);
-                        }
-                        dataUserUpdate[pro] = savedAvatarDocument !== null ? savedAvatarDocument._id : null;
-                        break;
-                    case "cover_image":
-                        let savedCoverImageDocument = null;
-                        if (uploadFile.matchesFileBase64(cover_image) !== false) {
-                            const coverImageResult = uploadFile.uploadFile(cover_image);
-                            if (coverImageResult !== false) {
-                                let coverImageDocument = new DocumentModel({
-                                    fileName: coverImageResult.fileName,
-                                    fileSize: coverImageResult.fileSize,
-                                    type: coverImageResult.type
-                                });
-                                savedCoverImageDocument = await coverImageDocument.save();
-                            }
-                        } else {
-                            savedCoverImageDocument = await DocumentModel.findById(cover_image);
-                        }
-                        dataUserUpdate[pro] = savedCoverImageDocument !== null ? savedCoverImageDocument._id : null;
-                        break;
-                    default:
-                        dataUserUpdate[pro] = req.body[pro];
-                        break;
+            if (req.body[pro]) {
+                dataUserUpdate[pro] = req.body[pro];
+            }
+        }
+
+        if (req.files) {
+            if (req.files.images) {
+                let image = '/uploads/images/' + req.files.images[0].filename;
+                if (req.body.changeImage === 'avatar') {
+                    dataUserUpdate['avatar'] = image
+                } 
+                else if (req.body.changeImage === 'cover_image') {
+                    dataUserUpdate['cover_image'] = image;
                 }
             }
         }
@@ -193,7 +157,7 @@ usersController.edit = async (req, res, next) => {
         if (!user) {
             return res.status(httpStatus.NOT_FOUND).json({message: "Can not find user"});
         }
-        user = await UserModel.findById(userId).select('phonenumber username gender birthday avatar cover_image blocked_inbox blocked_diary').populate('avatar').populate('cover_image');
+        user = await UserModel.findById(userId);
         return res.status(httpStatus.OK).json({
             data: user
         });
@@ -203,6 +167,7 @@ usersController.edit = async (req, res, next) => {
         });
     }
 }
+
 usersController.changePassword = async (req, res, next) => {
     try {
         let userId = req.userId;
@@ -258,18 +223,11 @@ usersController.changePassword = async (req, res, next) => {
 }
 usersController.show = async (req, res, next) => {
     try {
-        let userId = null;
-        if (req.params.id) {
-            userId = req.params.id;
-        } else {
-            userId = req.userId;
-        }
-
-        let user = await UserModel.findById(userId).select('phonenumber username gender birthday avatar cover_image blocked_inbox blocked_diary').populate('avatar').populate('cover_image');
+        let userId = req.params.id;
+        let user = await UserModel.findById(userId);
         if (user == null) {
             return res.status(httpStatus.NOT_FOUND).json({message: "Can not find user"});
         }
-
         return res.status(httpStatus.OK).json({
             data: user
         });
@@ -277,6 +235,38 @@ usersController.show = async (req, res, next) => {
         return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({message: error.message});
     }
 }
+
+usersController.showWithBlockFriend = async (req, res, next) => {
+    try {
+        let userId = req.userId;
+        let user = await UserModel.findById(userId).populate({
+            path: 'blocked_inbox',
+            select: '_id username phonenumber avatar',
+            model: 'Users'
+        }).populate({
+            path: 'blocked_diary',
+            select: '_id username phonenumber avatar',
+            model: 'Users'
+        }).populate({
+            path: 'blocked_notiInbox',
+            select: '_id username phonenumber avatar',
+            model: 'Users'
+        }).populate({
+            path: 'blocked_notiDiaryauthor',
+            select: '_id username phonenumber avatar',
+            model: 'Users'
+        })
+        if (user == null) {
+            return res.status(httpStatus.NOT_FOUND).json({message: "Can not find user"});
+        }
+        return res.status(httpStatus.OK).json({
+            data: user
+        });
+    } catch (error) {
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({message: error.message});
+    }
+}
+
 usersController.setBlock = async (req, res, next) => {
     try {
         let targetId = req.body.user_id;
@@ -308,6 +298,38 @@ usersController.setBlock = async (req, res, next) => {
             data: user
         });
 
+    } catch (e) {
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+            message: e.message
+        });
+    }
+}
+
+usersController.editBlock = async (req, res, next) => {
+    try {
+        let userId = req.userId;
+        const {
+            blockId,
+            blockField
+        } = req.body;
+        let user = await UserModel.findById(req.userId);
+        let blocked = user[blockField];
+        if(blocked.indexOf(blockId) === -1) {
+            blocked.push(blockId);
+        } else {
+            const index = blocked.indexOf(blockId);
+            if (index > -1) {
+                blocked.splice(index, 1);
+            }
+        }
+        user[blockField] = blocked;
+        user.save();
+
+        res.status(200).json({
+            code: 200,
+            message: "Thao tác thành công",
+            data: user
+        });
     } catch (e) {
         return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
             message: e.message

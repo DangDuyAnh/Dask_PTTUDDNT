@@ -6,6 +6,7 @@ const ChatModel = require("../models/Chats");
 const MessagesModel = require("../models/Messages");
 const UserModel = require("../models/Users");
 const httpStatus = require("../utils/httpStatus");
+const UserStatusModel = require("../models/UserStatus")
 const chatController = {};
 // chatController.send = async (req, res, next) => {
 //     try {
@@ -86,9 +87,8 @@ const chatController = {};
 
 chatController.send = async (req, res, next) => {
     try {
-        let userId = "617f0af2549fef460c878c6e";//req.userId;
+        const userId = req.userId;
         const {
-            name,
             chatId,
             receivedId,
             member,
@@ -106,8 +106,6 @@ chatController.send = async (req, res, next) => {
             } else {
                 chat = new ChatModel({
                     type: PRIVATE_CHAT,
-                    // name: await UserModel.findById(userId).username,
-                    name: name,
                     member: [
                        receivedId,
                        userId
@@ -116,7 +114,9 @@ chatController.send = async (req, res, next) => {
                 await chat.save();
                 chatIdSend = chat._id;
             }
-        } else if (type === GROUP_CHAT) {
+        } 
+
+        else if (type === GROUP_CHAT) {
             if (chatId) {
                 chat = await ChatModel.findById(chatId);
                 if (chat !== null) {
@@ -131,25 +131,33 @@ chatController.send = async (req, res, next) => {
                 chatIdSend = chat._id;
             }
         }
+
         if (chatIdSend) {
-            if (content) {
-                let message = new MessagesModel({
-                    chat: chatIdSend,
-                    user: userId,
-                    content: content
-                });
-                await message.save();
-                let messageNew = await MessagesModel.findById(message._id).populate('chat').populate('user');
-                return res.status(httpStatus.OK).json({
-                    data: messageNew
-                });
-            } else {
-                return res.status(httpStatus.OK).json({
-                    data: chat,
-                    message: 'Create chat success',
-                    response: 'CREATE_CHAT_SUCCESS'
-                });
+            let image = null;
+            let video = null;
+
+        if (req.files) {
+            if (req.files.images) {
+                image = '/uploads/images/' + req.files.images[0].filename;
             }
+            if (req.files.videos) {
+                video = '/uploads/videos/' + req.files.videos[0].filename;
+            }
+        }
+            let message = new MessagesModel({
+                chat: chatIdSend,
+                user: userId,
+                content: content,
+                image: image,
+                video: video
+            });
+            await message.save();
+            let messageNew = await MessagesModel.findById(message._id).populate('chat').populate('user');
+            req.io.sockets.to(chatIdSend.toString()).emit("chat");
+            return res.status(httpStatus.OK).json({
+                data: messageNew
+            });
+
         } else {
             return res.status(httpStatus.BAD_REQUEST).json({
                 message: 'Not chat'
@@ -160,6 +168,34 @@ chatController.send = async (req, res, next) => {
         return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
             message: e.message
         });
+    }
+}
+
+chatController.createChat = async (req, res, next) => {
+    try {
+        const {
+            user1,
+            user2
+        } = req.body
+        let chatModel = await ChatModel.findOne({ member: { $all: [user1, user2] } });
+        if (!chatModel) {
+            let chat = new ChatModel({
+                type: PRIVATE_CHAT,
+                member: [
+                user1,
+                user2
+                ]
+            });
+            await chat.save();
+            return res.status(httpStatus.OK).json({
+                chat: chat
+            });
+        }
+        return res.status(httpStatus.OK).json({
+            chat: chatModel
+        });
+    } catch (e) {
+        console.log(e);
     }
 }
 
@@ -200,12 +236,19 @@ chatController.getListConversations = async (req, res, next) => {
         await Promise.all(chats.map(getLastMessages));
         let returnArray = [];
         chats.forEach((chat, idx) => {
-            returnArray.push({chat: chat, lastMessage: lastMessages.get(chat._id), sender: userId, receiver: receivers.get(chat._id)})
+            if (lastMessages.get(chat._id)) {
+                returnArray.push({chat: chat, lastMessage: lastMessages.get(chat._id), sender: userId, receiver: receivers.get(chat._id)})
+            }
         });
 
         returnArray.sort(function(a,b){
             return new Date(b.lastMessage.createdAt) - new Date(a.lastMessage.createdAt);
           });
+
+        // chats.forEach((chat, idx) => {
+        //     returnArray.push({chat: chat, lastMessage: lastMessages.get(chat._id), sender: userId, receiver: receivers.get(chat._id)})
+        // });
+
         // const sortedReturnArray = returnArray.sort((item1, item2) => new Date(item1.lastMessage.createdAt) - new Date(item2.lastMessage.createdAt));
         // console.log(sortedReturnArray[0].receiver.username);
         // console.log(sortedReturnArray)
@@ -252,7 +295,23 @@ chatController.deleteConversation = async (req, res, next) => {
     }
 }
 
+chatController.getStatus = async (req, res, next) => {
+    try {
+        let statusUser = await UserStatusModel.findOne({
+            userId: req.params.userId
+        })
+        return res.status(httpStatus.OK).json({
+            statusUser: statusUser
+        });
+    } catch (e) {
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+            message: e.message
+        });
+    }
+}
+
 chatController.getListConversation = async (req, res, next) => {
+
     try {
         let userId = req.userId;
         let conversation = await ChatModel.find({ member: userId });
@@ -280,6 +339,51 @@ chatController.getListConversation = async (req, res, next) => {
         return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
             message: e.message
         });
+    }
+}
+
+chatController.saveUserStatus = async (userId) => {
+    try {
+    let UserStatus = await UserStatusModel.findOne({ userId: userId });
+    let saveUserStatus;
+    if (UserStatus) {
+        saveUserStatus = await UserStatusModel.findOneAndUpdate({userId: userId}, {
+            status: 'ONLINE'
+        }, {
+            new: true,
+            runValidators: true
+        }); 
+    }
+    else {
+        saveUserStatus = new UserStatusModel({
+            userId: userId,
+            status: 'ONLINE'
+        });
+        await saveUserStatus.save();
+    }
+        console.log(saveUserStatus)
+    } catch (e) {
+        console.log(e);
+    }
+}
+
+chatController.clearUserStatus = async (userId) => {
+    try {
+        let UserStatus = await UserStatusModel.findOne({userId: userId});
+        let savedUserStatus;
+
+        if (UserStatus) {
+            savedUserStatus = await UserStatusModel.findOneAndUpdate({userId: userId}, {
+                status: 'OFFLINE',
+                lastSeen: new Date(),
+            }, {
+                new: true,
+                runValidators: true
+            }); 
+            console.log(savedUserStatus); 
+        }
+    } catch(e) {
+        console.log(e);
     }
 }
 

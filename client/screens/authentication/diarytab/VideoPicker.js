@@ -7,10 +7,11 @@ import Video from 'react-native-video';
 import { Feather } from '@expo/vector-icons';
 
 import { GlobalContext } from '../../../utility/context';
+import * as Const from '../../../config/Constants';
 
 export default function ImagePicker(props){
 
-    const { globalFunction } = React.useContext(GlobalContext);
+    const { globalFunction, globalState } = React.useContext(GlobalContext);
     const [albums, setAlbums] = useState([]);
     const [photos, setPhotos] = useState([]);
     const [selectedPhotos, setSelectedPhotos] = useState(null);
@@ -80,22 +81,67 @@ export default function ImagePicker(props){
     };
 
     const handleVideoClick = () => {
-      props.navigation.navigate('VideoCamera')
       if (props.route.params) {
-          props.navigation.navigate('VideoCamera', {mode: 'edit'})
+          // props.navigation.navigate('VideoCamera', {mode: 'edit'})
+          props.navigation.navigate('VideoCamera', {...props.route.params})
           return;
       }
-      props.navigation.navigate('VideoCamera')
+      else props.navigation.navigate('VideoCamera')
     }
 
-    const handleNext = () => {
+    const handleNext = async () => {
       if (props.route.params) {
         if (props.route.params.mode === 'edit') {
           props.navigation.navigate('EditPost',{video: selectedPhotos});
           return;
         }
+        if (props.route.params.mode === 'message') {
+          if (selectedPhotos)  {
+            await sendVideo();
+          } else {
+            props.navigation.navigate('Conversation', {
+              chatId: props.route.params.chatId,
+              userId: globalState.user._id,
+              chatName: props.route.params.chatName
+            })
+          }
+        }
+
       }
-      props.navigation.navigate('Post', {video: selectedPhotos});
+      else props.navigation.navigate('Post', {video: selectedPhotos});
+    }
+
+    const sendVideo = async () => {
+      try {
+        const formData = new FormData();
+
+        formData.append("chatId", props.route.params.chatId);
+        formData.append("type", "PRIVATE_CHAT");
+        formData.append("videos", {
+          uri: selectedPhotos,
+          type: 'video/mp4',
+          name: 'video.mp4'
+        })
+
+        const response = await fetch(Const.API_URL+'/api/chats/send', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Accept: "application/json",
+            Authorization: `Bearer ${globalState.userToken}`,
+          },
+          body: formData,
+        });
+        const json = await response.json();
+        console.log(json)
+        props.navigation.navigate('Conversation', {
+          chatId: props.route.params.chatId,
+          userId: globalState.user._id,
+          chatName: props.route.params.chatName
+        })
+      } catch (error) {
+        console.error(error);
+      }
     }
       
     useEffect(() =>{

@@ -409,24 +409,77 @@ postsController.delete = async (req, res, next) => {
     }
 }
 
+// postsController.list = async (req, res, next) => {
+//     try {
+//         let posts = [];
+//         let userId = req.userId;
+//         if (req.query.userId) {
+//             // get Post of one user
+//             posts = await PostModel.find({
+//                 author: req.query.userId
+//             }).populate({
+//                 path: 'author',
+//                 select: '_id username phonenumber avatar',
+//                 model: 'Users'
+//             }).sort({"createdAt": -1});
+//         } else {
+//             // get list friend of 1 user
+//             let friends = await FriendModel.find({
+//                 status: "1",
+//             }).or([
+//                 {
+//                     sender: userId
+//                 },
+//                 {
+//                     receiver: userId
+//                 }
+//             ])
+//             let listIdFriends = [];
+//             for (let i = 0; i < friends.length; i++) {
+//                 if (friends[i].sender.toString() === userId.toString()) {
+//                     listIdFriends.push(friends[i].receiver);
+//                 } else {
+//                     listIdFriends.push(friends[i].sender);
+//                 }
+//             }
+//             listIdFriends.push(userId);
+
+//             posts = await PostModel.find({
+//                 "author": listIdFriends
+//             }).populate({
+//                 path: 'author',
+//                 select: '_id username phonenumber avatar',
+//                 model: 'Users'
+//             }).sort({"createdAt": -1});
+//         }
+//         let postWithIsLike = [];
+//         for (let i = 0; i < posts.length; i ++) {
+//             let postItem = posts[i];
+//             postItem.isLike = postItem.like.includes(req.userId);
+//             postWithIsLike.push(postItem);
+//         }
+//         return res.status(httpStatus.OK).json({
+//             data: postWithIsLike
+//         });
+//     } catch (error) {
+//         return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({message: error.message});
+//     }
+// }
+
 postsController.list = async (req, res, next) => {
     try {
         let posts = [];
         let userId = req.userId;
+        let user = await UserModel.findById(userId);
         if (req.query.userId) {
             // get Post of one user
             posts = await PostModel.find({
                 author: req.query.userId
-            }).populate('images', ['fileName']).populate('videos', ['fileName']).populate({
+            }).populate({
                 path: 'author',
                 select: '_id username phonenumber avatar',
-                model: 'Users',
-                populate: {
-                    path: 'avatar',
-                    select: '_id fileName',
-                    model: 'Documents',
-                },
-            });
+                model: 'Users'
+            }).sort({"createdAt": -1});
         } else {
             // get list friend of 1 user
             let friends = await FriendModel.find({
@@ -438,15 +491,21 @@ postsController.list = async (req, res, next) => {
                 {
                     receiver: userId
                 }
-            ])
+            ]).populate('sender').populate('receiver');
             let listIdFriends = [];
+
             for (let i = 0; i < friends.length; i++) {
-                if (friends[i].sender.toString() === userId.toString()) {
-                    listIdFriends.push(friends[i].receiver);
+                if (friends[i].sender._id.toString() === userId.toString()) {
+                    if (!user.blocked_notiDiary.includes(friends[i].receiver._id) && (!friends[i].receiver.blocked_diary.includes(userId))) {
+                        listIdFriends.push(friends[i].receiver._id);
+                    }
                 } else {
-                    listIdFriends.push(friends[i].sender);
+                    if (!user.blocked_notiDiary.includes(friends[i].sender._id) && (!friends[i].sender.blocked_diary.includes(userId))) {
+                    listIdFriends.push(friends[i].sender._id);
+                    }
                 }
             }
+
             listIdFriends.push(userId);
 
             posts = await PostModel.find({
@@ -467,6 +526,74 @@ postsController.list = async (req, res, next) => {
             data: postWithIsLike
         });
     } catch (error) {
+        console.log(error)
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({message: error.message});
+    }
+}
+
+postsController.listWithContent = async (req, res, next) => {
+    try {
+        let content = req.body.content;
+        let posts = [];
+        let userId = req.userId;
+        let user = await UserModel.findById(userId);
+        if (req.query.userId) {
+            // get Post of one user
+            posts = await PostModel.find({
+                author: req.query.userId
+            }).populate({
+                path: 'author',
+                select: '_id username phonenumber avatar',
+                model: 'Users'
+            }).sort({"createdAt": -1});
+        } else {
+            // get list friend of 1 user
+            let friends = await FriendModel.find({
+                status: "1",
+            }).or([
+                {
+                    sender: userId
+                },
+                {
+                    receiver: userId
+                }
+            ]).populate('sender').populate('receiver');
+            let listIdFriends = [];
+
+            for (let i = 0; i < friends.length; i++) {
+                if (friends[i].sender._id.toString() === userId.toString()) {
+                    if (!user.blocked_notiDiary.includes(friends[i].receiver._id) && (!friends[i].receiver.blocked_diary.includes(userId))) {
+                        listIdFriends.push(friends[i].receiver._id);
+                    }
+                } else {
+                    if (!user.blocked_notiDiary.includes(friends[i].sender._id) && (!friends[i].sender.blocked_diary.includes(userId))) {
+                    listIdFriends.push(friends[i].sender._id);
+                    }
+                }
+            }
+
+            listIdFriends.push(userId);
+
+            posts = await PostModel.find({
+                "author": listIdFriends,
+                "described" : {$regex : content}
+            }).populate({
+                path: 'author',
+                select: '_id username phonenumber avatar',
+                model: 'Users'
+            }).sort({"createdAt": -1});
+        }
+        let postWithIsLike = [];
+        for (let i = 0; i < posts.length; i ++) {
+            let postItem = posts[i];
+            postItem.isLike = postItem.like.includes(req.userId);
+            postWithIsLike.push(postItem);
+        }
+        return res.status(httpStatus.OK).json({
+            data: postWithIsLike
+        });
+    } catch (error) {
+        console.log(error)
         return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({message: error.message});
     }
 }

@@ -12,6 +12,12 @@ const messagesSchema = new mongoose.Schema({
     content: {
         type: String,
         required: false
+    },
+    image: {
+        type: String,
+    },
+    video: {
+        type: String,
     }
 });
 messagesSchema.set('timestamps', true);

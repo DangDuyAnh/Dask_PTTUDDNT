@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import { Text, View, TouchableOpacity, StyleSheet, ScrollView, Image, Button } from 'react-native';
+import { Text, View, TouchableOpacity, StyleSheet, ScrollView, Image, Button, StatusBar } from 'react-native';
 import {
 	Ionicons,
 	MaterialIcons,
@@ -9,13 +9,15 @@ import {
   AntDesign
 } from '@expo/vector-icons'
 import VideoPlayer from 'react-native-video-controls';
+import NetInfo from "@react-native-community/netinfo";
 
 import * as Const from '../../../config/Constants';
 import { GlobalContext } from '../../../utility/context';
 import { PhotoList } from './Post';
 import BottomPopupSelf from '../../../components/BottomPopupSelf';
 import BottomPopupOther from '../../../components/BottomPopupOthers';
-
+import CommentPopup from '../../../components/CommentPopup';
+import CustomPopup from '../../../components/CustomPopup';
 export const FormatTime = ({data}) => {
   let currentYear = new Date().getFullYear();
   let time = new Date(data);
@@ -40,7 +42,11 @@ export default function DiaryTab(props) {
   const { globalState } = React.useContext(GlobalContext);
   const [showPopupSelf, setShowPopupSelf] = useState(false);
   const [showPopupOther, setShowPopupOther] = useState(false);
+  const [showPopupComment, setShowPopupComment] = useState(false);
   const [postData, setPostData] = useState(null);
+  const [postForComment, setPostForComment] = useState(null);
+  const [showCustomPopup, setShowCustomPopup] = useState(false);
+  const [showCustomPopup2, setShowCustomPopup2] = useState(false);
 
   const deletePost = (item) => {
     setShowPopupSelf(false);
@@ -60,7 +66,59 @@ export default function DiaryTab(props) {
     setShowPopupOther(false);
   }
 
+  const closePopupComment = () => {
+    setShowPopupComment(false);
+  }
+
+  const switchBlockDiary = async () => {
+    try {
+        await fetch(Const.API_URL+'/api/users/editBlock', {
+            method: 'POST',
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${globalState.userToken}`,
+            },
+            body: JSON.stringify({
+              blockId: postData.author._id,
+              blockField: "blocked_diary"
+            })
+          });
+        getData();
+    } catch (e) {
+        console.log(e)
+    }
+}
+const switchHideDiary = async () => {
+    try {
+        await fetch(Const.API_URL+'/api/users/editBlock', {
+            method: 'POST',
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${globalState.userToken}`,
+            },
+            body: JSON.stringify({
+              blockId: postData.author._id,
+              blockField: "blocked_notiDiary"
+            })
+          });
+          getData();
+    } catch (e) {
+        console.log(e)
+    }
+}
+
   const heartPress = async(id, idx) => {
+    let state = await NetInfo.fetch()
+    if (!state.isConnected) {
+      console.log(state.isConnected)
+      setShowCustomPopup(true);
+      setTimeout(() => {
+        setShowCustomPopup(false)
+      }, 2000);
+      return;
+    }
     let posts = [...postList];
     if (posts[idx].isLike) {
       posts[idx].isLike = false;
@@ -80,44 +138,47 @@ export default function DiaryTab(props) {
   })
   }
 
+  const getData = async () => {
+    const response = await fetch(Const.API_URL+'/api/posts/list', {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${globalState.userToken}`,
+      },
+    });
+    const json = await response.json();
+    let newPostList = [];
+    (json.data).forEach((item, idx) => {
+      const newImages = [];
+        item.images.forEach((value, i) => {
+          newImages.push(Const.API_URL + value);
+          });
+
+        const newVideos = [];
+        item.videos.forEach((value, i) => {
+          newVideos.push(Const.API_URL + value);
+          });
+
+      newPostList.push({...item, images: newImages, videos: newVideos, countLikes: item.like.length});
+    });
+    setPostList(newPostList);
+    };
+
 
   useEffect(() => {
     try {
-      const getData = async () => {
-      const response = await fetch(Const.API_URL+'/api/posts/list', {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${globalState.userToken}`,
-        },
-      });
-      const json = await response.json();
-      let newPostList = [];
-      (json.data).forEach((item, idx) => {
-        const newImages = [];
-          item.images.forEach((value, i) => {
-            newImages.push(Const.API_URL + value);
-            });
-
-          const newVideos = [];
-          item.videos.forEach((value, i) => {
-            newVideos.push(Const.API_URL + value);
-            });
-
-        newPostList.push({...item, images: newImages, videos: newVideos, countLikes: item.like.length});
-      });
-      setPostList(newPostList);
-      };
+      getData();
       const unsubscribe = props.navigation.addListener('focus', getData);
       return unsubscribe;
     } catch (error) {
       console.error(error);
     }
-  }, []);
+  }, [showPopupComment]);
 
     return (
       <ScrollView style={styles.container}>
+         <StatusBar  backgroundColor={Const.COLOR_THEME}/>
         <View style={styles.toolBar}>
           <TouchableOpacity activeOpacity={1} onPress={() => {
             props.navigation.navigate('Post');
@@ -164,7 +225,10 @@ export default function DiaryTab(props) {
               <View style = {styles.headerInner}>
                 <Image source={{uri: Const.API_URL + item.author.avatar}} style = {styles.imageFeed} />
                 <View style = {styles.headerText}>
-                  <Text style={styles.feedAuthor}>{item.author.username}</Text>
+                  <Text style={styles.feedAuthor}
+                    onPress={() => {
+                      props.navigation.navigate('FriendProfile',{userId: item.author._id, username: item.author.username, avatar: item.author.avatar})}}
+                  >{item.author.username}</Text>
                   <FormatTime data={item.createdAt}/>
                 </View>
               </View>  
@@ -198,7 +262,21 @@ export default function DiaryTab(props) {
                 <Text style={styles.textIcon}>{item.countLikes}</Text>
               </View>
               <View style={styles.oneIcon}>
-              <FontAwesome name="comment-o" size={24} color="black" />
+              <TouchableOpacity onPress={async() => {
+                   let state = await NetInfo.fetch()
+                   if (!state.isConnected) {
+                     console.log(state.isConnected)
+                     setShowCustomPopup(true);
+                     setTimeout(() => {
+                       setShowCustomPopup(false)
+                     }, 2000);
+                     return;
+                   }
+                setPostForComment(item);
+                setShowPopupComment(true)
+                }}>
+                <FontAwesome name="comment-o" size={24} color="black" />
+              </TouchableOpacity>
                 <Text style={styles.textIcon}>{item.countComments}</Text>
               </View>
             </View>
@@ -219,7 +297,41 @@ export default function DiaryTab(props) {
           show={showPopupOther}
           closePopup={closePopupOther}
           data = {postData}
+          report = {() => {
+            closePopupOther();
+            setShowCustomPopup2(true);
+            setTimeout(() => {
+              setShowCustomPopup2(false)
+            }, 2000);
+            }
+          }
+          blockDiary = {() => {
+            closePopupOther();
+            switchBlockDiary();
+          }}
+          hideDiary = {() => {
+            closePopupOther();
+            switchHideDiary();
+          }}
+
         />}
+
+        {postForComment&&<CommentPopup 
+          show = {showPopupComment}
+          closePopup={closePopupComment}
+          animationType='slide'
+          data = {postForComment}
+        />}
+
+        <CustomPopup 
+          show = {showCustomPopup}
+        />
+
+        <CustomPopup 
+          show = {showCustomPopup2}
+          firstLine = "Đã báo cáo bài viết"
+          secondLine = "Hệ thống sẽ xem xét và xử lí"
+        />
       </ScrollView>
     );
   }

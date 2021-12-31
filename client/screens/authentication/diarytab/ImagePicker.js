@@ -6,10 +6,11 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { GlobalContext } from '../../../utility/context';
 import { hasAndroidPermission } from "../../../utility/PermissionsAndroid";
+import * as Const from '../../../config/Constants';
 
 export default function ImagePicker(props){
 
-    const { globalFunction } = React.useContext(GlobalContext);
+    const { globalFunction, globalState  } = React.useContext(GlobalContext);
     const [albums, setAlbums] = useState([]);
     const [photos, setPhotos] = useState([]);
     const [selectedPhotos, setSelectedPhotos] = useState([])
@@ -83,21 +84,109 @@ export default function ImagePicker(props){
     };
 
     const handleImageClick = () => {
+      
       if (props.route.params) {
-          props.navigation.navigate('Camera', {mode: 'edit'})
+          // props.navigation.navigate('Camera', {mode: 'edit'})
+          props.navigation.navigate('Camera', {...props.route.params});
           return;
       }
-      props.navigation.navigate('Camera')
+      else props.navigation.navigate('Camera')
     }
 
-    const handleNext = () => {
+    const handleNext = async () => {
       if (props.route.params) {
         if (props.route.params.mode === 'edit') {
           props.navigation.navigate('EditPost',{images: selectedPhotos});
           return;
         }
+        if (props.route.params.mode === 'message') {
+          if (selectedPhotos.length !== 1)  {
+            props.navigation.navigate('Conversation', {
+              chatId: props.route.params.chatId,
+              userId: globalState.user._id,
+              chatName: props.route.params.chatName
+            })
+          } else {
+            await sendImage();
+          }
+        }
+        if (props.route.params.mode === 'change cover_image') {
+          if (selectedPhotos.length !== 1)  {
+            props.navigation.navigate('SettingProfile')
+          } else {
+            await changeImage('cover_image');
+          }
+        }
+        if (props.route.params.mode === 'change avatar') {
+          if (selectedPhotos.length !== 1)  {
+            props.navigation.navigate('SettingProfile')
+          } else {
+            await changeImage('avatar');
+          }
+        }
+
       }
-      props.navigation.navigate('Post',{images: selectedPhotos});
+      else props.navigation.navigate('Post',{images: selectedPhotos});
+    }
+
+    const sendImage = async () => {
+      try {
+        const formData = new FormData();
+
+        formData.append("chatId", props.route.params.chatId);
+        formData.append("type", "PRIVATE_CHAT");
+        formData.append("images", {
+          uri: selectedPhotos[0],
+          type: "image/jpeg",
+          name: `image.jpg`,
+        })
+
+        const response = await fetch(Const.API_URL+'/api/chats/send', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Accept: "application/json",
+            Authorization: `Bearer ${globalState.userToken}`,
+          },
+          body: formData,
+        });
+        const json = await response.json();
+        props.navigation.navigate('Conversation', {
+          chatId: props.route.params.chatId,
+          userId: globalState.user._id,
+          chatName: props.route.params.chatName
+        })
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    const changeImage = async (imageKind) => {
+      try {
+        const formData = new FormData();
+
+        formData.append("changeImage", imageKind);
+        formData.append("images", {
+          uri: selectedPhotos[0],
+          type: "image/jpeg",
+          name: `image.jpg`,
+        })
+
+        const response = await fetch(Const.API_URL+'/api/users/edit', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Accept: "application/json",
+            Authorization: `Bearer ${globalState.userToken}`,
+          },
+          body: formData,
+        });
+        const json = await response.json();
+        globalFunction.changeUserInfo({user: json.data});
+        props.navigation.navigate('Main tab')
+      } catch (error) {
+        console.error(error);
+      }
     }
       
     useEffect(() =>{
@@ -105,21 +194,6 @@ export default function ImagePicker(props){
         getAlbums();
       }
     }, []);
-
-    // const renderPhotos = ({item, idx}) => (
-    //     <TouchableOpacity key={idx} style={{width: '32%', height: 150, margin: 2, backgroundColor: 'white'}}
-    //     onPress = {() => {tappedPhotos(item)}}>
-    //       {selectedPhotos.includes(item.node.image.uri)&&
-    //       <Text style={{padding: 5, height: 30, width: 30, borderRadius: 15, textAlign: 'center',
-    //       position: 'absolute', top: 10, right: 10, elevation: 20, backgroundColor: '#1878f3', color: 'white'}}>
-    //         {selectedPhotos.indexOf(item.node.image.uri) + 1}</Text>}
-    //         <Image source = {{uri: item.node.image.uri}} 
-    //         style={{flex: 1, borderWidth: selectedPhotos.includes(item.node.image.uri)?3:0,
-    //                 borderColor: selectedPhotos.includes(item.node.image.uri)?'#1878f3':'transparent'}}
-            
-    //         />
-    //     </TouchableOpacity>
-    // );
 
       return(
         <View style = {{backgroundColor: 'white', flex: 1}}>
@@ -142,13 +216,6 @@ export default function ImagePicker(props){
             </TouchableOpacity>
 
           </View>
-            {/* <View style={{alignContent: 'center', backgroundColor: 'white', alignItems: 'center', flex: 1, marginTop: 80}}>
-                <FlatList 
-                    data={photos}
-                    renderItem={renderPhotos}
-                    numColumns={3}
-                />
-            </View> */}
             <View style={{paddingLeft: 5, backgroundColor: 'white', flex: 1, paddingTop: 80, flexDirection: 'row', flexWrap: 'wrap'}}>
 
               <TouchableOpacity style={{backgroundColor: 'white', width: '32%', height: 150, margin: 2, justifyContent: 'center', alignItems: 'center',
@@ -168,8 +235,7 @@ export default function ImagePicker(props){
                       {selectedPhotos.indexOf(item.node.image.uri) + 1}</Text>}
                       <Image source = {{uri: item.node.image.uri}} 
                       style={{flex: 1, borderWidth: selectedPhotos.includes(item.node.image.uri)?3:0,
-                              borderColor: selectedPhotos.includes(item.node.image.uri)?'#1878f3':'transparent'}}
-                      
+                              borderColor: selectedPhotos.includes(item.node.image.uri)?'#1878f3':'transparent'}}               
                       />
                   </TouchableOpacity>
                 );

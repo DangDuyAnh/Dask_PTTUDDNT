@@ -44,5 +44,11 @@ postsRoutes.get(
     asyncWrapper(postsController.list),
 );
 
+postsRoutes.post(
+    "/listWithContent",
+    auth,
+    asyncWrapper(postsController.listWithContent),
+);
+
 
 module.exports = postsRoutes;

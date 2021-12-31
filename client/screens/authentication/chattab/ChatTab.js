@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, Button, StyleSheet, FlatList, TouchableOpacity, Image } from 'react-native';
+import { Text, View, Button, StyleSheet, FlatList, TouchableOpacity, Image, StatusBar } from 'react-native';
 import * as Const from '../../../config/Constants';
 import { GlobalContext } from '../../../utility/context';
 
@@ -30,7 +30,6 @@ export default function ChatTab(props) {
   useEffect(() => {
     try {
       const getData = async () => {
-        console.log('do this')
         const response = await fetch(Const.API_URL+'/api/chats/getListConversations', {
           method: 'GET',
           headers: {
@@ -50,6 +49,7 @@ export default function ChatTab(props) {
             messageTime: getMessageTime(item.lastMessage.createdAt),
             messageText: item.lastMessage.content,
             userId: item.sender,
+            userReceiverId: item.receiver._id
           });
         });
         setChatList(newChatList);
@@ -60,40 +60,44 @@ export default function ChatTab(props) {
       console.error(error);
     }
   }, []);
-  //console.log(chatList)
   return (
-    <FlatList
-      data={chatList}
-      keyExtractor={item => item.id}
-      renderItem={({item}) => (
-        <View style={styles.container}>
-          <TouchableOpacity 
-            style={styles.card}
-            onPress={() => props.navigation.navigate('Conversation', {
-              chatName: item.userName,
-              chatId: item.chatId,
-              userId: item.userId
-            })}
-          >
-            <View style={styles.userInfo}>
-              <View style={styles.userImgWrapper}>
-                <Image 
-                  source={{uri: item.userImg}}
-                  style={styles.userImg}
-                />
-              </View>
-              <View style={styles.textSection}> 
-                <View style={styles.userInfoText}>
-                  <Text style={styles.userName}>{item.userName}</Text>
-                  <Text style={styles.postTime}>{item.messageTime}</Text>
+    <>
+      <StatusBar  backgroundColor={Const.COLOR_THEME}/>
+      <FlatList
+        data={chatList}
+        keyExtractor={item => item.id}
+        renderItem={({item}) => (
+          <View style={styles.container}>
+            <TouchableOpacity 
+              style={styles.card}
+              onPress={() => props.navigation.navigate('Conversation', {
+                chatName: item.userName,
+                chatId: item.chatId,
+                userId: item.userId,
+                userReceiverId: item.userReceiverId,
+              })}
+            >
+              <View style={styles.userInfo}>
+                <View style={styles.userImgWrapper}>
+                  <Image 
+                    source={{uri: item.userImg}}
+                    style={styles.userImg}
+                  />
                 </View>
-                <Text style={styles.messageText}>{item.messageText}</Text>
+                <View style={styles.textSection}> 
+                  <View style={styles.userInfoText}>
+                    <Text style={styles.userName}>{item.userName}</Text>
+                    <Text style={styles.postTime}>{item.messageTime}</Text>
+                  </View>
+                  <Text style={styles.messageText}>{(item.messageText)?item.messageText:
+                  `${item.userName} đã gửi một tệp đính kèm`}</Text>
+                </View>
               </View>
-            </View>
-          </TouchableOpacity>
-        </View>
-      )}
-    />
+            </TouchableOpacity>
+          </View>
+        )}
+      />
+    </>
   );
 }
 

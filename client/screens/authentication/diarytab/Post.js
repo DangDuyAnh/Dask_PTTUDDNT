@@ -155,7 +155,6 @@ export function Post(props) {
             </View>
             }
 
-
             </ScrollView>
             <View style={styles.footer}>
                 <TouchableOpacity>

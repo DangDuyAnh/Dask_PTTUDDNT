@@ -1,9 +1,10 @@
 import React, {useEffect, useState} from 'react';
-import { Text, View, TouchableOpacity, StyleSheet, ScrollView, Image, Button } from 'react-native';
+import {KeyboardAvoidingView, Text, View, TouchableOpacity, StyleSheet, ScrollView, Image, TextInput, FlatList } from 'react-native';
 import {
   Entypo,
   FontAwesome,
-  AntDesign
+  AntDesign,
+  Ionicons
 } from '@expo/vector-icons'
 import VideoPlayer from 'react-native-video-controls';
 
@@ -22,6 +23,8 @@ export default function SinglePost(props) {
     const [showPopupSelf, setShowPopupSelf] = useState(false);
     const [showPopupOther, setShowPopupOther] = useState(false);
     const [postData, setPostData] = useState(null);
+    const [comments, setComments] = useState([]);
+    const [text, setText] = useState('');
 
     useEffect(() => {
         const getData = async () => {
@@ -48,6 +51,18 @@ export default function SinglePost(props) {
   
             setPost({...json.data, images: newImages, videos: newVideos, countLikes: json.data.like.length});
             // setPost(json.data);
+
+            const response2 = await fetch(Const.API_URL+'/api/postComment/list/'+postId, {
+              method: 'GET',
+              headers: {
+                  Accept: 'application/json',
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${globalState.userToken}`,
+              },
+              });
+              const json2 = await response2.json();
+              setComments(json2.data);
+
             }   catch (error) {
                 console.error(error);
             }
@@ -87,7 +102,26 @@ export default function SinglePost(props) {
       })
       }
 
+      const renderItem = ({item, index}) => {
+        return(
+        <View style={{flexDirection: 'row', margin: 10}}>
+            <Image source={{uri: Const.API_URL + item.user.avatar}} style={styles2.image}/>
+
+            <View style={{flex: 1}}>
+                <View style={styles2.textContainer}>
+                    <Text style = {{fontSize: 18, color: 'black', fontWeight: '700'
+                    , paddingBottom: 4}}>{item.user.username}</Text>
+                    <Text style={{fontSize: 18, color: 'black'}}>{item.content}</Text>
+                </View>
+                <FormatTime data={item.createdAt} style={{paddingLeft: 10, fontSize: 16, fontWeight: '900'
+            , paddingTop: 2}}/>
+            </View> 
+        </View>
+        );
+    }
+
     return(
+        <KeyboardAvoidingView style={styles.container}>
         <ScrollView style={styles.container}>
         {(isLoad)&&<View style={styles.feedContainer}>
 
@@ -134,7 +168,12 @@ export default function SinglePost(props) {
               </View>
             </View>
 
-            
+            <View style={{flex: 1, width: '100%'}}>
+              <FlatList
+                  data={comments}
+                  renderItem={renderItem}
+              /> 
+            </View>           
         </View>}
         <BottomPopupSelf
           show={showPopupSelf}
@@ -151,5 +190,46 @@ export default function SinglePost(props) {
         />}
 
         </ScrollView>
+        <View style={{maxHeight: 160,borderTopColor:'#757575', borderTopWidth: 1 , width: '100%'
+                , backgroundColor: 'white', paddingRight: 15, paddingLeft: 15, paddingBottom: 10, paddingTop: 10}}>
+                        <ScrollView style={{flexGrow:0, width: '100%', backgroundColor: '#eeeeee', borderRadius: 20}}>
+                            <TextInput value={text} placeholder='Viết bình luận...' multiline={true}
+                            style={{width: '100%', fontSize: 20,}}
+                            onChangeText = {(val) => setText(val)}
+                            />
+                        </ScrollView>
+
+                        {(text !== '')&&
+                        <View style={{width: '100%', flexDirection: 'row-reverse', paddingTop: 7}}>
+                            <TouchableOpacity>
+                                <Ionicons name="send" size={24} color={Const.COLOR_THEME} />
+                            </TouchableOpacity>
+                        </View>
+                        }
+              </View> 
+        </KeyboardAvoidingView>
     );
 }
+
+const styles2 = StyleSheet.create({
+  divider: {
+      width: '100%',
+      height: 1,
+      backgroundColor: '#bdbdbd',
+      marginBottom: 1
+  },
+  image: {
+      width : 36,
+      height: 36,
+      borderRadius: 18,
+      marginRight: 10,
+  },
+  textContainer: {
+      borderRadius: 8,
+      backgroundColor: "#eeeeee",
+      paddingLeft: 10,
+      paddingRight: 10,
+      paddingBottom: 5,
+      paddingTop: 5
+  }
+})

@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { Ionicons, MaterialCommunityIcons, MaterialIcons} from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons, MaterialIcons, SimpleLineIcons} from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { StyleSheet, View, Text, StatusBar, Touchable, TouchableOpacity, TextInput, Button } from 'react-native';
+import { StyleSheet, View, Text, StatusBar, Touchable, TouchableOpacity, TextInput, Button, Image } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import socketIOClient from "socket.io-client";
 
@@ -13,6 +13,7 @@ import {Contact} from './contacttab/Contact';
 import * as Const from '../../config/Constants';
 import * as RootNavigation from '../../RootNavigation';
 import { GlobalContext} from '../../utility/context';
+import { setTextRange } from 'typescript';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -85,12 +86,17 @@ function Header(props) {
             style={styles.input}
             onChangeText={(e)=>{onChangeText(e); }}
             value={text}
-            placeholder="Tìm bạn bè, ..."
+            placeholder="Tìm bạn bè, bài viết..."
             placeholderTextColor='white'
             clearTextOnFocus={true}
             /* selectionColor={'white'} */
             underlineColorAndroid={'transparent'}
-            onEndEditing={(e)=>{change(text);}}
+            onSubmitEditing={() => {
+              if (text && text!=='') {
+                RootNavigation.navigate('SearchPost', {content: text})
+              }
+              onChangeText(null);
+            }}
           />
       <View style={styles.headerWrapper}>
         <TouchableOpacity style={{paddingRight: 10}} onPress = {() => {
@@ -113,6 +119,24 @@ function Header(props) {
   )
 }
 
+function ProfileHeader(props) {
+  const { globalState, globalFunction } = React.useContext(GlobalContext);
+  return(
+    <View style={styles.headerContainer}>
+      <View style={{flexDirection: 'row', alignItems: 'center'}}>
+        <Image source={{uri: Const.API_URL + globalState.user.avatar}} style = {{width: 40, height: 40, 
+          borderRadius: 20, marginRight: 15, borderWidth: 1, borderColor: '#e0e0e0'}}/>
+        <Text style={{fontSize: 24, fontWeight: '700', color: Const.COLOR_THEME}}>
+          {globalState.user.username}
+        </Text>
+      </View>
+      <TouchableOpacity onPress={() => RootNavigation.navigate('SettingProfile')}>
+        <SimpleLineIcons name="menu" size={24} color={Const.COLOR_THEME} />
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 export default function MainTab() {
 
   const [searchText, setSearchText] = React.useState("");
@@ -121,7 +145,7 @@ export default function MainTab() {
 
   return (
     <>
-      <StatusBar backgroundColor={Const.COLOR_THEME} />
+      <StatusBar  backgroundColor={Const.COLOR_THEME}/>
       <Tab.Navigator
         screenOptions={({ route }) => ({
           tabBarIcon: ({ focused, color, size }) => {
@@ -170,9 +194,9 @@ export default function MainTab() {
           />
         <Tab.Screen name="ProfileTab" component={ProfileTab}
           options={{ 
-            headerTitle: ()=>{return (<Header onChangeText={setSearchText} searchText={searchText}/>)}, 
+            headerTitle: ()=>{return (<ProfileHeader/>)}, 
             headerStyle: {
-              backgroundColor: Const.COLOR_THEME,
+              backgroundColor: 'white',
             }
           }}
         />

@@ -11,3 +11,9 @@ export function navigate(name, params = null) {
     }
   }
 }
+
+export function goBack() {
+  if (navigationRef.isReady()) {
+    navigationRef.goBack();
+  }
+}

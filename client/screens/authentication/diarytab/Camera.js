@@ -17,7 +17,8 @@ export default function Camera (props) {
           setImage(data);
           // props.navigation.navigate('Preview', {data: data});
           if (props.route.params) {
-              props.navigation.navigate('Preview', {data: data, mode: 'edit'})
+            //props.navigation.navigate('Preview', {data: data, mode: 'edit'})
+              props.navigation.navigate('Preview', {data: data, ...props.route.params})
           } else {
             props.navigation.navigate('Preview', {data: data});
           }

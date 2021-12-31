@@ -26,7 +26,7 @@ export default class CameraVideo extends Component {
             w: 48,
             h: 48,
             r: 48
-        }
+        },
     }
 
     constructor(props) {
@@ -88,19 +88,20 @@ export default class CameraVideo extends Component {
         this.setState({cameraState: 1});
         this.startClock();
         this.setState({isRecording :true});
-        const promise = await this.camera.recordAsync();
+        const promise = this.camera.recordAsync();
         if (promise) {
-          const data = promise;
+          let data = await promise;
           this.setState({isRecording :false});
           if (isBack === 0)
             {
               if (this.props.route.params) {
-                  this.props.navigation.navigate('PreviewVideo', {data: data, mode: 'edit'})
+                  // this.props.navigation.navigate('PreviewVideo', {data: data, mode: 'edit'})
+                  let sendObj =  {data: data,  ...this.props.route.params}
+                  this.props.navigation.navigate('PreviewVideo', {data: data, ...this.props.route.params})
               } else {
                 this.props.navigation.navigate('PreviewVideo', {data: data});
               }
             }
-            // this.props.navigation.navigate('PreviewVideo', {data: data});
         }
       } catch (e) {
         console.error(e);
@@ -237,3 +238,4 @@ const styles = StyleSheet.create({
     width: '100%'
   },
 });
+

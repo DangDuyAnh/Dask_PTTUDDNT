@@ -1,7 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import Conversation from './chattab/Conversation';
+import Conversation, {headerConversation} from './chattab/Conversation';
 import MainTab from './MainTab';
 
 const Stack = createNativeStackNavigator();

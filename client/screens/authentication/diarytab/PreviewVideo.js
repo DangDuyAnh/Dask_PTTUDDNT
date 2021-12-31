@@ -5,9 +5,12 @@ import CameraRoll from "@react-native-community/cameraroll";
 import Video from 'react-native-video';
 
 import { hasAndroidPermission } from '../../../utility/PermissionsAndroid';
+import { GlobalContext } from '../../../utility/context';
+import * as Const from '../../../config/Constants';
 
 export default function preview(props) {
 
+    const { globalFunction, globalState  } = React.useContext(GlobalContext);
     const [isMute, setIsMute] = useState(false)
 
     const handleSave = async () => {
@@ -15,8 +18,14 @@ export default function preview(props) {
             try {
             CameraRoll.save(props.route.params.data.uri, {album: 'Dask'});
             // props.navigation.navigate('Post', {video: props.route.params.data.uri});
+            console.log(props.route.params)
             if (props.route.params.mode ) {
+                if (props.route.params.mode === 'edit') {
                 props.navigation.navigate('EditPost', {video: props.route.params.data.uri});
+                }
+                if (props.route.params.mode === 'message') {
+                    await sendVideo();
+                }
             }
             else {
                 props.navigation.navigate('Post', {video: props.route.params.data.uri});
@@ -27,6 +36,39 @@ export default function preview(props) {
             }
         }
     }
+
+    const sendVideo = async () => {
+        try {
+          const formData = new FormData();
+  
+          formData.append("chatId", props.route.params.chatId);
+          formData.append("type", "PRIVATE_CHAT");
+          formData.append("videos", {
+            uri: props.route.params.data.uri,
+            type: 'video/mp4',
+            name: 'video.mp4'
+          })
+  
+          const response = await fetch(Const.API_URL+'/api/chats/send', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'multipart/form-data',
+              Accept: "application/json",
+              Authorization: `Bearer ${globalState.userToken}`,
+            },
+            body: formData,
+          });
+          const json = await response.json();
+          console.log(json);
+          props.navigation.navigate('Conversation', {
+            chatId: props.route.params.chatId,
+            userId: globalState.user._id,
+            chatName: props.route.params.chatName
+          })
+        } catch (error) {
+          console.error(error);
+        }
+      }
 
     return(
         <View style={styles.container}>
