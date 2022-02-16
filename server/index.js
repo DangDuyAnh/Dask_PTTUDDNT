@@ -51,23 +51,6 @@ server.listen(PORT, HOST, () => {
     console.log("server running on port: " + PORT)
 })
 
-// Socket.io chat realtime
-// io.on('connection', (socket) => {
-//     MessageModel.find().then(result => {
-//         socket.emit('output-messages', result)
-//     })
-//     console.log('a user connected');
-//     socket.emit('message', 'Hello world');
-//     socket.on('disconnect', () => {
-//         console.log('user disconnected');
-//     });
-//     socket.on('chatmessage', msg => {
-//         const message = new MessageModel({ msg });
-//         message.save().then(() => {
-//             io.emit('message', msg)
-//         })
-//     })
-// });
 let userIds = {};
 let userIdDict = {};
 io.on('connection', (socket) => {
@@ -85,7 +68,6 @@ io.on('connection', (socket) => {
         }
     })
 
-    //DangDuyAnh
     socket.on('notification', function(room) {
         console.log('joining room', room);
         socket.join(room);

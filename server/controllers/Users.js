@@ -248,11 +248,11 @@ usersController.showWithBlockFriend = async (req, res, next) => {
             select: '_id username phonenumber avatar',
             model: 'Users'
         }).populate({
-            path: 'blocked_notiInbox',
+            path: 'blocked_inbox',
             select: '_id username phonenumber avatar',
             model: 'Users'
         }).populate({
-            path: 'blocked_notiDiaryauthor',
+            path: 'blocked_notiDiary',
             select: '_id username phonenumber avatar',
             model: 'Users'
         })

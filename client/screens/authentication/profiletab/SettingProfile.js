@@ -33,7 +33,7 @@ export default function SettingProfile(props) {
                 <Text style={styles.text}>Danh sách bạn bè bị ẩn nhật ký</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity onPress={() => props.navigation.navigate('Bạn bè bị chặn tin nhắn ')}>
+                <TouchableOpacity onPress={() => props.navigation.navigate('Bạn bè bị chặn tin nhắn')}>
                 <Text style={styles.text}>Danh sách bạn bè bị chặn tin nhắn</Text>
                 </TouchableOpacity>
             </View>

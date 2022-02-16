@@ -72,7 +72,7 @@ const Login = (props) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}> Dask </Text>
+      <Text style={styles.title}> App </Text>
       <View style={{marginTop: 50}}>
           <TextInput style={[styles.textInput, focusPhone ? styles.textFocus : styles.textNotFocus]} 
           keyboardType="phone-pad" placeholder="Số điện thoại" onChangeText={(val) => handlePhoneChange(val)} 
@@ -96,7 +96,7 @@ const Login = (props) => {
       </TouchableHighlight>
       <TouchableHighlight style={{...styles.button, marginTop: 200}} onPress={register}>
         <View style={{...styles.button, backgroundColor: "#42B72A"}}>
-          <Text style={styles.buttonTitle}>Tạo tài khoản Dask mới</Text>
+          <Text style={styles.buttonTitle}>Tạo tài khoản App mới</Text>
         </View>
       </TouchableHighlight>
       </View>
@@ -106,6 +106,7 @@ const Login = (props) => {
 
 const styles = StyleSheet.create({
     container: {
+      flex: 1,
       padding: 25,
       justifyContent: 'center',
       backgroundColor: 'white'

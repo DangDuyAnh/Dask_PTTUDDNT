@@ -12,5 +12,6 @@ friendsRoutes.post("/set-remove", auth, friendController.setRemoveFriend);
 friendsRoutes.post("/list", auth, friendController.listFriends);
 friendsRoutes.post("/findFriend", auth, friendController.findFriend);
 friendsRoutes.post("/changeStatus", auth, friendController.changeStatus);
+friendsRoutes.post("/listFriend", auth, friendController.listFriends2)
 
 module.exports = friendsRoutes;

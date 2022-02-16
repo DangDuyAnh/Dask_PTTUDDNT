@@ -72,7 +72,7 @@ export const Register1 = ({ navigation }) => {
     return (
       <View style={styles.backGround}>
       <View style={styles.container}>
-          <Text style={styles.title}>Tham gia Dask</Text>
+          <Text style={styles.title}>Tham gia App</Text>
           <Text style={styles.description}>Chúng tôi sẽ giúp bạn tạo tài khoản mới sau vài bước dễ dàng</Text>
       </View>
       <TouchableHighlight style={styles.buttonOut} onPress={onPress1}>

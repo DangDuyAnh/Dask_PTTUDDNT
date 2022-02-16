@@ -20,6 +20,7 @@ export default function BlockList(props) {
                 }
                 });
             const json = await response.json();
+            console.log(json);
             setListBlock(json.data.blocked_diary);
             setFinishGetData(true);
         }

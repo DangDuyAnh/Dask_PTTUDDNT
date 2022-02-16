@@ -565,6 +565,7 @@ function ButtonRemoveFriend(props) {
     let body = {
       user_id: props.userId,
     }
+    console.log(body)
 
     let res = authPost('/friends/set-remove', body, token);
 
@@ -950,22 +951,32 @@ function MainContact(props) {
 function GetFriendList(oldSetter, waitSetter, token) {
   let res = authPost('/friends/list', {}, token);
   res.then((data)=>{
-    //console.log(data);
     
-    let temp = [];
+    // let temp = [];
     const _data = data.data;
-    _data.friends.map((v, i) => {
-      temp.push(v);
-    })
-    oldSetter(temp);
+    // _data.friends.map((v, i) => {
+    //   temp.push(v);
+    // })
+    // oldSetter(temp);
 
-    temp = [];
+    let temp = [];
     _data.waitting.map((v, i) => {
       temp.push(v);
     })
     waitSetter(temp);
     //console.log(temp);
 
+  });
+  let res2 = authPost('/friends/listFriend', {}, token);
+  res2.then((data)=>{
+    
+    let temp = [];
+    const _data = data.data;
+    _data.friends.map((v, i) => {
+      temp.push(v);
+    })
+    console.log(temp);
+    oldSetter(temp);
   })
 }
 

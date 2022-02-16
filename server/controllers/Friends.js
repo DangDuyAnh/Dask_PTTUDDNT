@@ -139,6 +139,8 @@ friendsController.setRemoveFriend = async (req, res, next) => {
 
         let friendRc1 = await FriendModel.findOne({ sender: sender, receiver: receiver });
         let friendRc2 = await FriendModel.findOne({ sender: receiver, receiver: sender });
+        console.log("friendRc1", friendRc1);
+        console.log("friendRc2",friendRc2);
         let final;
         if (friendRc1 == null) {
             final = friendRc2;
@@ -235,6 +237,44 @@ friendsController.listFriends = async (req, res, next) => {
             });
         }
 
+    } catch (e) {
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+            message: e.message
+        });
+    }
+}
+
+friendsController.listFriends2 = async (req, res, next) => {
+    try {
+        let userId = req.userId;
+        let friends = await FriendModel.find({
+            status: "1",
+        }).or([
+            {
+                sender: userId
+            },
+            {
+                receiver: userId
+            }
+        ]).populate('sender').populate('receiver');
+        let listIdFriends = [];
+        for (let i = 0; i < friends.length; i++) {
+            if (friends[i].sender._id.toString() === userId.toString()) {
+                listIdFriends.push(friends[i].receiver._id);
+            } else {
+                listIdFriends.push(friends[i].sender._id);
+            }
+        }
+        console.log('userId', userId);
+        console.log('list ID friend', listIdFriends);
+        let returnedFriends = await UserModel.find({"_id": listIdFriends});
+        res.status(200).json({
+            code: 200,
+            message: "Danh sách bạn bè",
+            data: {
+                friends: returnedFriends
+            }
+        });
     } catch (e) {
         return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
             message: e.message
