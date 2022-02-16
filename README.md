@@ -21,3 +21,6 @@ Truy cập Database:
 
 WBS:
 - https://husteduvn-my.sharepoint.com/:x:/g/personal/anh_dd183471_sis_hust_edu_vn/EYjuII-4v-VAvX79gSiPRhYBCexhAAMlNWyUTUrz6FYTXA?rtime=EFkeZr6x2Ug
+
+fix gift chat (nếu gặp lỗi giftchat addlistener...):
+- https://github.com/FaridSafi/react-native-gifted-chat/issues/2090
